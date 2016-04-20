@@ -38,8 +38,6 @@ npm i pino-http --save
 ```js
 'use strict'
 
-'use strict'
-
 var http = require('http')
 var server = http.createServer(handle)
 
