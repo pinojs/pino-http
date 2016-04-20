@@ -41,7 +41,7 @@ npm i pino-http --save
 var http = require('http')
 var server = http.createServer(handle)
 
-var logger = require('./')()
+var logger = require('pino-http')()
 
 function handle (req, res) {
   logger(req, res)

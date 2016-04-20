@@ -27,5 +27,13 @@
     "test": "tap test/*.js"
   },
   "author": "David Mark Clements",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmarkclements/pino-http.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidmarkclements/pino-http/issues"
+  },
+  "homepage": "https://github.com/davidmarkclements/pino-http#readme"
 }
