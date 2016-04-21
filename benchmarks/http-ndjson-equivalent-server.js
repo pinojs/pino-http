@@ -4,14 +4,11 @@ var http = require('http')
 var httpNdjson = require('http-ndjson')
 var server = http.createServer(handle)
 
-var logger = require('morgan')('combined')
 var pid = process.pid
 var hostname = require('os').hostname()
 
 function handle (req, res) {
-
   res.end('hello world')
-  
   var opts = {
     pid: pid,
     hostname: hostname,
@@ -26,9 +23,8 @@ function handle (req, res) {
       headers: req.headers,
       remoteAddress: req.connection.remoteAddress,
       remotePort: req.connection.remotePort
-    },
+    }
   }
-
   httpNdjson(req, res, opts, console.log)
 }
 
