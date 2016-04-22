@@ -28,9 +28,8 @@ function pinoLogger (opts, stream) {
     this.removeListener('finish', onResFinished)
     this.removeListener('error', onResFinished)
 
-    var end = process.hrtime(this.startTime)
     var log = this.log
-    var responseTime = Math.round(end[0] * 1e3 + end[1] / 1e6)
+    var responseTime = Date.now() - this.startTime
 
     if (err) {
       log.error({
@@ -48,11 +47,11 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
-    var startTime = process.hrtime()
+    var startTime = Date.now()
     req.id = ++nextId
     nextId = nextId % maxInt
 
-    var child = logger.child({ req: req })
+    var child = logger.child({req: req})
 
     req.log = child
     res.log = child
