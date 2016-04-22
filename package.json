@@ -1,6 +1,6 @@
 {
   "name": "pino-http",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "dependencies": {
