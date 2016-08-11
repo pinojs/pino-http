@@ -18,7 +18,7 @@ function pinoLogger (opts, stream) {
 
   loggingMiddleware.logger = logger
 
-  var nextId = 0
+  var nextReqId = 0
 
   stream = logger.stream
 
@@ -48,8 +48,10 @@ function pinoLogger (opts, stream) {
 
   function loggingMiddleware (req, res, next) {
     var startTime = Date.now()
-    req.id = ++nextId
-    nextId = nextId % maxInt
+    if (req.id === undefined) {
+      req.id = ++nextReqId
+      nextReqId = nextReqId % maxInt
+    }
 
     var child = logger.child({req: req})
 
