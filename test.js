@@ -83,6 +83,28 @@ test('allocate a unique id to every request', function (t) {
   })
 })
 
+test('reuses existing req.id if present', function (t) {
+  t.plan(2)
+
+  var dest = split(JSON.parse)
+  var logger = pinoLogger(dest)
+  var someId = 'id-to-reuse-12345'
+
+  function loggerWithExistingReqId (req, res) {
+    req.id = someId
+    logger(req, res)
+  }
+
+  setup(t, loggerWithExistingReqId, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.req.id, someId)
+  })
+})
+
 test('responseTime', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoLogger(dest)
