@@ -35,7 +35,7 @@ function pinoLogger (opts, stream) {
       log.error({
         res: this,
         err: err,
-        responseTime: this.responseTime
+        responseTime: responseTime
       }, 'request errored')
       return
     }
