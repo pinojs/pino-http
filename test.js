@@ -109,7 +109,6 @@ test('responseTime', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoLogger(dest)
 
-  var server = http.createServer(handle)
   function handle (req, res) {
     logger(req, res)
     setTimeout(function () {
@@ -117,19 +116,34 @@ test('responseTime', function (t) {
     }, 100)
   }
 
-  t.tearDown(function (cb) {
-    server.close(cb)
-  })
+  expectResponseTime(t, dest, logger, handle)
+})
 
-  server.listen(0, '127.0.0.1', function (err) {
+test('responseTime for errored request', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoLogger(dest)
+
+  function handle (req, res) {
+    logger(req, res)
+    setTimeout(function () {
+      res.emit('error', new Error('Some error'))
+      res.end()
+    }, 100)
+  }
+
+  expectResponseTime(t, dest, logger, handle)
+})
+
+function expectResponseTime (t, dest, logger, handle) {
+  setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server)
-  })
+  }, handle)
 
   dest.on('data', function (line) {
     // let's take into account Node v0.10 is less precise
     t.ok(line.responseTime >= 90, 'responseTime is defined and in ms')
     t.end()
   })
-})
+}
 
