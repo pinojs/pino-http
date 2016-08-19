@@ -129,6 +129,7 @@ var logger = pino({
     res: pino.stdSerializers.res
   }
 })
+```
 
 ### pinoHttp.stdSerializers.req
 
