@@ -88,3 +88,7 @@ function asReqValue (req) {
 }
 
 module.exports = pinoLogger
+module.exports.stdSerializers = {
+  req: asReqValue,
+  res: pino.stdSerializers.res
+}
