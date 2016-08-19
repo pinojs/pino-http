@@ -14,15 +14,7 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
 
-  var logger = null
-
-  if (opts.logger) {
-    logger = opts.logger
-    opts.logger = undefined
-    logger = logger.child(opts)
-  } else {
-    logger = pino(opts, stream)
-  }
+  var logger = wrapChild(opts, stream)
 
   loggingMiddleware.logger = logger
 
@@ -85,6 +77,21 @@ function asReqValue (req) {
     remoteAddress: req.connection.remoteAddress,
     remotePort: req.connection.remotePort
   }
+}
+
+function wrapChild (opts, stream) {
+  var prevLogger = opts.logger
+  var logger = null
+
+  if (prevLogger) {
+    opts.logger = undefined
+    logger = prevLogger.child(opts)
+    opts.logger = prevLogger
+  } else {
+    logger = pino(opts, stream)
+  }
+
+  return logger
 }
 
 module.exports = pinoLogger
