@@ -14,7 +14,15 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
 
-  var logger = pino(opts, stream)
+  var logger = null
+
+  if (opts.logger) {
+    logger = opts.logger
+    opts.logger = undefined
+    logger = logger.child(opts)
+  } else {
+    logger = pino(opts, stream)
+  }
 
   loggingMiddleware.logger = logger
 

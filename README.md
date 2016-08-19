@@ -50,8 +50,6 @@ function handle (req, res) {
 }
 
 server.listen(3000)
-
-
 ```
 
 ```
@@ -94,6 +92,28 @@ $ node example.js | pino
 `pino-http` has the same options as [pino](http://npm.im/pino).
 
 `pino-http` attaches listeners to the request, in order to log when the request completes
+
+`pino-http` can reuse a pino instance if passed with the `logger`
+property:
+
+```js
+'use strict'
+
+var http = require('http')
+var server = http.createServer(handle)
+var pino = require('pino')()
+var logger = require('pino-http')({
+  logger: pino
+})
+
+function handle (req, res) {
+  logger(req, res)
+  req.log.info('something else')
+  res.end('hello world')
+}
+
+server.listen(3000)
+```
 
 ## Team
 
