@@ -50,8 +50,6 @@ function handle (req, res) {
 }
 
 server.listen(3000)
-
-
 ```
 
 ```
@@ -91,9 +89,98 @@ $ node example.js | pino
 
 ## API
 
+### pinoHttp([options], [stream])
+
 `pino-http` has the same options as [pino](http://npm.im/pino).
 
 `pino-http` attaches listeners to the request, in order to log when the request completes
+
+`pino-http` can reuse a pino instance if passed with the `logger`
+property:
+
+```js
+'use strict'
+
+var http = require('http')
+var server = http.createServer(handle)
+var pino = require('pino')()
+var logger = require('pino-http')({
+  logger: pino
+})
+
+function handle (req, res) {
+  logger(req, res)
+  req.log.info('something else')
+  res.end('hello world')
+}
+
+server.listen(3000)
+```
+
+Example:
+
+```js
+'use strict'
+
+var pino = require('pino-http')
+var logger = pino({
+  serializers: {
+    req: pino.stdSerializers.req,
+    res: pino.stdSerializers.res
+  }
+})
+```
+
+### pinoHttp.stdSerializers.req
+
+Generates a JSONifiable object from the HTTP `request` object passed to
+the `createServer` callback of Node's HTTP server.
+
+It returns an object in the form:
+
+```js
+{
+  pid: 93535,
+  hostname: 'your host',
+  level: 30,
+  msg: 'my request',
+  time: '2016-03-07T12:21:48.766Z',
+  v: 0,
+  req: {
+    id: 42,
+    method: 'GET',
+    url: '/',
+    headers: {
+      host: 'localhost:50201',
+      connection: 'close'
+    },
+    remoteAddress: '::ffff:127.0.0.1',
+    remotePort: 50202
+  }
+}
+```
+
+### pinoHttp.stdSerializers.res
+
+Generates a JSONifiable object from the HTTP `response` object passed to
+the `createServer` callback of Node's HTTP server.
+
+It returns an object in the form:
+
+```js
+{
+  pid: 93581,
+  hostname: 'myhost',
+  level: 30,
+  msg: 'my response',
+  time: '2016-03-07T12:23:18.041Z',
+  v: 0,
+  res: {
+    statusCode: 200,
+    header: 'HTTP/1.1 200 OK\r\nDate: Mon, 07 Mar 2016 12:23:18 GMT\r\nConnection: close\r\nContent-Length: 5\r\n\r\n'
+  }
+}
+```
 
 ## Team
 

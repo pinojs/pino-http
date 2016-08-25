@@ -2,7 +2,8 @@
 
 var test = require('tap').test
 var http = require('http')
-var pinoLogger = require('./')
+var pinoHttp = require('./')
+var pino = require('pino')
 var split = require('split2')
 
 function setup (t, logger, cb, handler) {
@@ -33,7 +34,7 @@ function doGet (server) {
 
 test('default settings', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -54,7 +55,7 @@ test('exposes the internal pino', function (t) {
   t.plan(1)
 
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
 
   dest.on('data', function (line) {
     t.equal(line.msg, 'hello world')
@@ -67,7 +68,7 @@ test('allocate a unique id to every request', function (t) {
   t.plan(5)
 
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
   var lastId = null
 
   setup(t, logger, function (err, server) {
@@ -87,7 +88,7 @@ test('reuses existing req.id if present', function (t) {
   t.plan(2)
 
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
   var someId = 'id-to-reuse-12345'
 
   function loggerWithExistingReqId (req, res) {
@@ -107,7 +108,7 @@ test('reuses existing req.id if present', function (t) {
 
 test('responseTime', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
 
   function handle (req, res) {
     logger(req, res)
@@ -121,7 +122,7 @@ test('responseTime', function (t) {
 
 test('responseTime for errored request', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoLogger(dest)
+  var logger = pinoHttp(dest)
 
   function handle (req, res) {
     logger(req, res)
@@ -147,3 +148,23 @@ function expectResponseTime (t, dest, logger, handle) {
   })
 }
 
+test('support a custom instance', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest)
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.req, 'req is defined')
+    t.ok(line.res, 'res is defined')
+    t.equal(line.msg, 'request completed', 'message is set')
+    t.equal(line.req.method, 'GET', 'method is get')
+    t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.end()
+  })
+})
