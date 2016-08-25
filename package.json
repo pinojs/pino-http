@@ -1,16 +1,16 @@
 {
   "name": "pino-http",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "dependencies": {
-    "pino": "^2.1.6"
+    "pino": "^2.8.3"
   },
   "devDependencies": {
     "tap": "^6.0.0",
     "http-ndjson": "^3.0.0",
     "pre-commit": "^1.1.2",
-    "standard": "^7.0.0",
+    "standard": "^8.0.0",
     "split2": "^2.0.1"
   },
   "scripts": {
