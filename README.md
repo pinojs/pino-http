@@ -91,12 +91,25 @@ $ node example.js | pino
 
 ### pinoHttp([options], [stream])
 
-`pino-http` has the same options as [pino](http://npm.im/pino).
+#### options
 
+`pino-http` has the same options as [pino](http://npm.im/pino).
 `pino-http` attaches listeners to the request, in order to log when the request completes
 
+##### logger
+
 `pino-http` can reuse a pino instance if passed with the `logger`
-property:
+property
+
+##### genReqId
+
+You can pass a `genReqId` function which gets used to generate a request id. The first argument is the request itself.
+
+As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app.
+
+#### Examples
+
+##### Logger options
 
 ```js
 'use strict'
@@ -105,7 +118,17 @@ var http = require('http')
 var server = http.createServer(handle)
 var pino = require('pino')()
 var logger = require('pino-http')({
-  logger: pino
+  // Reuse an existing logger instance
+  logger: pino,
+
+  // Define a custom request id function
+  genReqId: function (req) { return req.id },
+
+  // Define custom serializers
+  serializers: {
+    req: pino.stdSerializers.req,
+    res: pino.stdSerializers.res
+  }
 })
 
 function handle (req, res) {
@@ -117,19 +140,8 @@ function handle (req, res) {
 server.listen(3000)
 ```
 
-Example:
 
-```js
-'use strict'
-
-var pino = require('pino-http')
-var logger = pino({
-  serializers: {
-    req: pino.stdSerializers.req,
-    res: pino.stdSerializers.res
-  }
-})
-```
+#### Default serializers
 
 ### pinoHttp.stdSerializers.req
 
@@ -160,7 +172,7 @@ It returns an object in the form:
 }
 ```
 
-### pinoHttp.stdSerializers.res
+##### pinoHttp.stdSerializers.res
 
 Generates a JSONifiable object from the HTTP `response` object passed to
 the `createServer` callback of Node's HTTP server.

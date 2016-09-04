@@ -1,7 +1,6 @@
 'use strict'
 
 var pino = require('pino')
-var maxInt = 2147483647
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -15,13 +14,8 @@ function pinoLogger (opts, stream) {
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
 
   var logger = wrapChild(opts, stream)
-
+  var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
-
-  var nextReqId = 0
-
-  stream = logger.stream
-
   return loggingMiddleware
 
   function onResFinished (err) {
@@ -47,17 +41,9 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
-    var startTime = Date.now()
-    if (req.id === undefined) {
-      req.id = ++nextReqId
-      nextReqId = nextReqId % maxInt
-    }
-
-    var child = logger.child({req: req})
-
-    req.log = child
-    res.log = child
-    res.startTime = startTime
+    req.id = genReqId(req)
+    req.log = res.log = logger.child({req: req})
+    res.startTime = Date.now()
 
     res.on('finish', onResFinished)
     res.on('error', onResFinished)
@@ -92,6 +78,15 @@ function wrapChild (opts, stream) {
   }
 
   return logger
+}
+
+function reqIdGenFactory (func) {
+  if (typeof func === 'function') return func
+  var maxInt = 2147483647
+  var nextReqId = 0
+  return function genReqId (req) {
+    return req.id || (nextReqId = (nextReqId % maxInt) + 1)
+  }
 }
 
 module.exports = pinoLogger

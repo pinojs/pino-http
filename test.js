@@ -84,6 +84,29 @@ test('allocate a unique id to every request', function (t) {
   })
 })
 
+test('uses a custom genReqId function', function (t) {
+  t.plan(4)
+
+  var dest = split(JSON.parse)
+  var idToTest
+  function genReqId (req) {
+    t.ok(req.url, 'The first argument must be the request parameter')
+    idToTest = (Date.now() + Math.random()).toString(32)
+    return idToTest
+  }
+
+  var logger = pinoHttp({genReqId: genReqId}, dest)
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(typeof line.req.id, 'string')
+    t.equal(line.req.id, idToTest)
+  })
+})
+
 test('reuses existing req.id if present', function (t) {
   t.plan(2)
 
