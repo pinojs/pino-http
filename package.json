@@ -4,10 +4,10 @@
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "dependencies": {
-    "pino": "^2.8.3"
+    "pino": "^2.12.1"
   },
   "devDependencies": {
-    "tap": "^6.0.0",
+    "tap": "^7.1.2",
     "http-ndjson": "^3.0.0",
     "pre-commit": "^1.1.2",
     "standard": "^8.0.0",
