@@ -67,12 +67,15 @@ function asReqValue (req) {
 
 function wrapChild (opts, stream) {
   var prevLogger = opts.logger
+  var prevGenReqId = opts.genReqId
   var logger = null
 
   if (prevLogger) {
     opts.logger = undefined
+    opts.genReqId = undefined
     logger = prevLogger.child(opts)
     opts.logger = prevLogger
+    opts.genReqId = prevGenReqId
   } else {
     logger = pino(opts, stream)
   }
