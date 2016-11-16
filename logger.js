@@ -1,6 +1,7 @@
 'use strict'
 
 var pino = require('pino')
+var id = Symbol('id')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -41,7 +42,7 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
-    req.id = genReqId(req)
+    req[id] = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res.startTime = Date.now()
 
@@ -56,7 +57,7 @@ function pinoLogger (opts, stream) {
 
 function asReqValue (req) {
   return {
-    id: req.id,
+    id: req[id],
     method: req.method,
     url: req.url,
     headers: req.headers,
