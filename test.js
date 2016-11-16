@@ -191,3 +191,34 @@ test('support a custom instance', function (t) {
     t.end()
   })
 })
+
+test('support a custom instance with custom genReqId function', function (t) {
+  var dest = split(JSON.parse)
+
+  var idToTest
+  function genReqId (req) {
+    t.ok(req.url, 'The first argument must be the request parameter')
+    idToTest = (Date.now() + Math.random()).toString(32)
+    return idToTest
+  }
+
+  var logger = pinoHttp({
+    logger: pino(dest),
+    genReqId: genReqId
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.req, 'req is defined')
+    t.ok(line.res, 'res is defined')
+    t.notOk(line.genReqId)
+    t.equal(line.msg, 'request completed', 'message is set')
+    t.equal(line.req.method, 'GET', 'method is get')
+    t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.end()
+  })
+})
