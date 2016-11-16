@@ -4,26 +4,28 @@
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "dependencies": {
-    "pino": "^2.12.1"
+    "pino": "^3.0.0"
   },
   "devDependencies": {
-    "tap": "^7.1.2",
+    "coveralls": "^2.11.15",
     "http-ndjson": "^3.0.0",
     "pre-commit": "^1.1.2",
+    "split2": "^2.0.1",
     "standard": "^8.0.0",
-    "split2": "^2.0.1"
+    "tap": "^8.0.0"
   },
   "scripts": {
-    "test": "standard && tap test.js"
+    "test": "standard && tap --no-cov test.js",
+    "ci": "standard && tap --cov test.js"
   },
   "author": "David Mark Clements",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/davidmarkclements/pino-http.git"
+    "url": "git+https://github.com/pinojs/pino-http.git"
   },
   "bugs": {
-    "url": "https://github.com/davidmarkclements/pino-http/issues"
+    "url": "https://github.com/pinojs/pino-http/issues"
   },
-  "homepage": "https://github.com/davidmarkclements/pino-http#readme"
+  "homepage": "https://github.com/pinojs/pino-http#readme"
 }
