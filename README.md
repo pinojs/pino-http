@@ -1,4 +1,4 @@
-# pino-http&nbsp;&nbsp;[![Build Status](https://travis-ci.org/mcollina/express-pino-logger.svg)](https://travis-ci.org/davidmarkclements/pino-http)
+# pino-http&nbsp;&nbsp;[![Build Status](https://travis-ci.org/pinojs/pino-http.svg)](https://travis-ci.org/pinojs/pino-http)
 
 High-speed HTTP logger for Node.js
 
