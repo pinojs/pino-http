@@ -191,3 +191,31 @@ test('support a custom instance', function (t) {
     t.end()
   })
 })
+
+test('exposes the id via a global symbol', function (t) {
+  t.plan(3)
+
+  var dest = split(JSON.parse)
+  var logger = pinoHttp(dest)
+
+  var server = http.createServer(function (req, res) {
+    logger(req, res)
+    t.ok(req[Symbol.for('id')], 'has symbol')
+    var lastId = req[Symbol.for('id')]
+    res.statusCode = 200
+    res.end('Hello World!')
+
+    // add a listener later, otherwise lastId will not be there
+    dest.on('data', function (line) {
+      t.equal(line.req.id, lastId, 'id equals')
+    })
+  })
+
+  server.listen(0, '127.0.0.1', function (err) {
+    t.error(err)
+    doGet(server)
+  })
+  t.tearDown(function (cb) {
+    server.close(cb)
+  })
+})

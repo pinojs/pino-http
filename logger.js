@@ -1,7 +1,7 @@
 'use strict'
 
 var pino = require('pino')
-var id = Symbol('id')
+var id = Symbol.for('id')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
