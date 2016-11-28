@@ -13,7 +13,7 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
 
-  var logger = wrapChild(opts, stream)
+  var logger = wrapChild(opts, opts.stream || stream)
   var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
   return loggingMiddleware
