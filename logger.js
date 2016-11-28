@@ -12,9 +12,11 @@ function pinoLogger (opts, stream) {
   opts.serializers = opts.serializers || {}
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
-  opts.stream = opts.stream || stream
 
-  var logger = wrapChild(opts, opts.stream)
+  var theStream = opts.stream || stream
+  delete opts.stream
+
+  var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
   return loggingMiddleware
