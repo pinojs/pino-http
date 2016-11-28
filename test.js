@@ -51,6 +51,25 @@ test('default settings', function (t) {
   })
 })
 
+test('stream in options', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ stream: dest })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.req, 'req is defined')
+    t.ok(line.res, 'res is defined')
+    t.equal(line.msg, 'request completed', 'message is set')
+    t.equal(line.req.method, 'GET', 'method is get')
+    t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.end()
+  })
+})
+
 test('exposes the internal pino', function (t) {
   t.plan(1)
 
