@@ -25,7 +25,7 @@ connections and 10 pipelined requests.
 * `pino-http` (extreme): 25770.91 req/sec
 * no logger: 46139.64 req/sec
 
-All benchmarks where taken on a Macbook Pro 2013 (2.6GHZ i7, 16GB of RAM). 
+All benchmarks where taken on a Macbook Pro 2013 (2.6GHZ i7, 16GB of RAM).
 
 ## Install
 
@@ -106,6 +106,10 @@ property
 You can pass a `genReqId` function which gets used to generate a request id. The first argument is the request itself.
 
 As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app.
+
+##### stream
+The destination stream.  
+Could be passed as the second parameter or as an option.
 
 #### Examples
 
