@@ -13,6 +13,9 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
 
+  var useLevel = opts.useLevel || 'info'
+  delete opts.useLevel
+
   var theStream = opts.stream || stream
   delete opts.stream
 
@@ -37,7 +40,7 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    log.info({
+    log[useLevel]({
       res: this,
       responseTime: responseTime
     }, 'request completed')

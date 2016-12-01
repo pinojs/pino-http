@@ -89,27 +89,16 @@ $ node example.js | pino
 
 ## API
 
-### pinoHttp([options], [stream])
+### pinoHttp([opts], [stream])
 
-#### options
+`opts`: it has all the options as [pino](http://npm.im/pino) and
 
-`pino-http` has the same options as [pino](http://npm.im/pino).
-`pino-http` attaches listeners to the request, in order to log when the request completes
+* `logger`: `pino-http` can reuse a pino instance if passed with the `logger` property
+* `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
+* `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
+* `stream`: same as the second parameter
 
-##### logger
-
-`pino-http` can reuse a pino instance if passed with the `logger`
-property
-
-##### genReqId
-
-You can pass a `genReqId` function which gets used to generate a request id. The first argument is the request itself.
-
-As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app.
-
-##### stream
-The destination stream.  
-Could be passed as the second parameter or as an option.
+`stream`: the destination stream. Could be passed in as an option too.
 
 #### Examples
 
@@ -132,7 +121,10 @@ var logger = require('pino-http')({
   serializers: {
     req: pino.stdSerializers.req,
     res: pino.stdSerializers.res
-  }
+  },
+
+  // Logger level is `info` by default
+  useLevel: 'info'
 })
 
 function handle (req, res) {
@@ -147,7 +139,7 @@ server.listen(3000)
 
 #### Default serializers
 
-### pinoHttp.stdSerializers.req
+##### pinoHttp.stdSerializers.req
 
 Generates a JSONifiable object from the HTTP `request` object passed to
 the `createServer` callback of Node's HTTP server.

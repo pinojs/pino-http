@@ -83,6 +83,23 @@ test('exposes the internal pino', function (t) {
   logger.logger.info('hello world')
 })
 
+test('uses the log level passed in as an option', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
+
+  function decoratedLogger (req, res, next) {
+    logger(req, res, next)
+    req.log.debug = function () {
+      t.end()
+    }
+  }
+
+  setup(t, decoratedLogger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+})
+
 test('allocate a unique id to every request', function (t) {
   t.plan(5)
 
