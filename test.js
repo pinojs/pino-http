@@ -87,16 +87,15 @@ test('uses the log level passed in as an option', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
 
-  function decoratedLogger (req, res, next) {
-    logger(req, res, next)
-    req.log.debug = function () {
-      t.end()
-    }
-  }
-
-  setup(t, decoratedLogger, function (err, server) {
+  setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 20, 'level')
+    t.notOk(line.useLevel, 'useLevel not forwarded')
+    t.end()
   })
 })
 
