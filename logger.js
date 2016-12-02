@@ -11,7 +11,7 @@ function pinoLogger (opts, stream) {
   opts = opts || {}
   opts.serializers = opts.serializers || {}
   opts.serializers.req = opts.serializers.req || asReqValue
-  opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
+  opts.serializers.res = opts.serializers.res || asResValue
 
   var theStream = opts.stream || stream
   delete opts.stream
@@ -68,6 +68,18 @@ function asReqValue (req) {
   }
 }
 
+var hrx = /(.+): (.+)\r\n/gm
+function asResValue (res) {
+  var headers = {}
+  var h = res._header
+  var m
+  while (m = hrx.exec(h)) headers[m[1]] = m[2]
+  return {
+    statusCode: res.statusCode,
+    headers: headers
+  }
+}
+
 function wrapChild (opts, stream) {
   var prevLogger = opts.logger
   var prevGenReqId = opts.genReqId
@@ -98,5 +110,5 @@ function reqIdGenFactory (func) {
 module.exports = pinoLogger
 module.exports.stdSerializers = {
   req: asReqValue,
-  res: pino.stdSerializers.res
+  res: asResValue
 }
