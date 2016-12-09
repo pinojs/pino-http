@@ -48,7 +48,7 @@ function pinoLogger (opts, stream) {
 
   function onReqAborted () {
     var res = this.res
-    res.statusCode = 0
+    res.statusCode = 408
     onResFinished.call(res, new Error('Aborted'))
   }
 
