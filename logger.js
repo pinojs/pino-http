@@ -46,7 +46,8 @@ function pinoLogger (opts, stream) {
     }, 'request completed')
   }
 
-  function onReqAborted (res) {
+  function onReqAborted () {
+    var res = this.res
     res.statusCode = 0
     onResFinished.call(res, new Error('Aborted'))
   }
@@ -55,13 +56,12 @@ function pinoLogger (opts, stream) {
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res.startTime = Date.now()
+    if (!req.res) { req.res = res }
 
     res.on('finish', onResFinished)
     res.on('error', onResFinished)
     // it's possible that browser aborts connection, or http-server because of timeout
-    req.on('aborted', function () {
-      onReqAborted(res)
-    })
+    req.on('aborted', onReqAborted)
 
     if (next) {
       next()
