@@ -29,7 +29,7 @@ function setup (t, logger, cb, handler) {
 
 function doGet (server) {
   var address = server.address()
-  http.get('http://' + address.address + ':' + address.port)
+  return http.get('http://' + address.address + ':' + address.port)
 }
 
 test('default settings', function (t) {
@@ -254,6 +254,79 @@ test('support a custom instance with custom genReqId function', function (t) {
     t.equal(line.msg, 'request completed', 'message is set')
     t.equal(line.req.method, 'GET', 'method is get')
     t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.end()
+  })
+})
+
+test('react on aborted event from clientside', function (t) {
+  var dest = split(JSON.parse)
+
+  var idToTest
+  function genReqId (req) {
+    t.ok(req.url, 'The first argument must be the request parameter')
+    idToTest = (Date.now() + Math.random()).toString(32)
+    return idToTest
+  }
+
+  var logger = pinoHttp({
+    logger: pino({
+      serializers: pino.stdSerializers
+    }, dest),
+    genReqId: genReqId
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    var address = server.address()
+    var request = http.get({
+      host: address.address,
+      port: address.port
+    })
+    // need this in order to prevent unhadled socket handup
+    request.on('error', function () {})
+    setTimeout(function () {
+      // break the connection from the clientside
+      request.abort()
+    }, 100)
+  }, logger)
+
+  dest.on('data', function (line) {
+    t.equal(line.msg, 'request errored', 'message is set')
+    t.equal(line.err.message, 'Aborted', 'error message is set')
+    t.equal(line.res.statusCode, 408, 'statusCode is 408')
+    t.end()
+  })
+})
+
+test('react on aborted event from server', function (t) {
+  var dest = split(JSON.parse)
+
+  var idToTest
+  function genReqId (req) {
+    t.ok(req.url, 'The first argument must be the request parameter')
+    idToTest = (Date.now() + Math.random()).toString(32)
+    return idToTest
+  }
+
+  var logger = pinoHttp({
+    logger: pino({
+      serializers: pino.stdSerializers
+    }, dest),
+    genReqId: genReqId
+  })
+
+  setup(t, logger, function (err, server) {
+    server.timeout = 100
+    t.error(err)
+    var request = doGet(server)
+    // need this in order to prevent unhadled socket handup
+    request.on('error', function () {})
+  }, logger)
+
+  dest.on('data', function (line) {
+    t.equal(line.msg, 'request errored', 'message is set')
+    t.equal(line.err.message, 'Aborted', 'error message is set')
+    t.equal(line.res.statusCode, 408, 'statusCode is 408')
     t.end()
   })
 })
