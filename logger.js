@@ -103,7 +103,7 @@ function reqIdGenFactory (func) {
   var maxInt = 2147483647
   var nextReqId = 0
   return function genReqId (req) {
-    return req.id || (nextReqId = (nextReqId % maxInt) + 1)
+    return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
 }
 
