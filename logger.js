@@ -36,12 +36,12 @@ function pinoLogger (opts, stream) {
         res: this,
         err: err,
         responseTime: responseTime
-      }, 'request' + (name ? name : 'errored')
+      }, 'request' + (name ? name : 'errored'))
     } else {
       log[useLevel]({
         res: this,
         responseTime: responseTime
-      }, 'request' + (name ? name : 'completed')
+      }, 'request' + (name ? name : 'completed'))
     }
   }
 
