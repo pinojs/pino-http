@@ -24,7 +24,7 @@ function pinoLogger (opts, stream) {
   loggingMiddleware.logger = logger
   return loggingMiddleware
 
-  function onResFinished (err) {
+  function onResFinished (err, name) {
     this.removeListener('finish', onResFinished)
     this.removeListener('error', onResFinished)
 
@@ -36,20 +36,23 @@ function pinoLogger (opts, stream) {
         res: this,
         err: err,
         responseTime: responseTime
-      }, 'request errored')
-      return
+      }, 'request' + (name ? name : 'errored'))
+    } else {
+      log[useLevel]({
+        res: this,
+        responseTime: responseTime
+      }, 'request' + (name ? name : 'completed'))
     }
-
-    log[useLevel]({
-      res: this,
-      responseTime: responseTime
-    }, 'request completed')
   }
 
   function onReqAborted () {
     var res = this.res
-    res.statusCode = 408
-    onResFinished.call(res, new Error('Aborted'))
+    if (req.method !== 'HEAD' && req.method !== 'GET') {
+      res.statusCode = 408
+      onResFinished.call(res, new Error('aborted'), 'aborted')
+    } else {
+      onResFinished.call(res, undefined, 'aborted')
+    }
   }
 
   function loggingMiddleware (req, res, next) {
