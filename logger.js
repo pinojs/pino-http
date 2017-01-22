@@ -61,7 +61,9 @@ function pinoLogger (opts, stream) {
     res.on('finish', onResFinished)
     res.on('error', onResFinished)
     // it's possible that browser aborts connection, or http-server because of timeout
-    req.on('aborted', onReqAborted)
+    if (!['HEAD', 'GET'].includes(req.method)) {
+      req.on('aborted', onReqAborted)
+    }
 
     if (next) {
       next()
