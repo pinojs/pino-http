@@ -29,7 +29,7 @@ function pinoLogger (opts, stream) {
     this.removeListener('timeout', onReqTimeout)
   }
 
-  function onResFinished (err, aborted) {
+  function onResFinished (err, msg = 'completed') {
     this.removeListener('finish', onResFinished)
     this.removeListener('error', onResFinished)
 
@@ -48,16 +48,16 @@ function pinoLogger (opts, stream) {
     log[useLevel]({
       res: this,
       responseTime: responseTime
-    }, 'request ' + (aborted ? 'aborted' : 'completed'))
+    }, 'request ' + msg)
   }
 
   function onReqAborted () {
     onReqFinished.call(this)
     var res = this.res
     if (this.method !== 'HEAD' && this.method !== 'GET') {
-      onResFinished.call(res, new Error('Aborted'), true)
+      onResFinished.call(res, new Error('Aborted'))
     } else {
-      onResFinished.call(res, null, true)
+      onResFinished.call(res, null, 'aborted')
     }
   }
 
