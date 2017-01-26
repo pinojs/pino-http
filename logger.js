@@ -24,11 +24,6 @@ function pinoLogger (opts, stream) {
   loggingMiddleware.logger = logger
   return loggingMiddleware
 
-  function onReqFinished () {
-    this.removeListener('aborted', onReqAborted)
-    this.removeListener('timeout', onReqTimeout)
-  }
-
   function onResFinished (err, msg = 'completed') {
     this.removeListener('finish', onResFinished)
     this.removeListener('error', onResFinished)
@@ -52,7 +47,8 @@ function pinoLogger (opts, stream) {
   }
 
   function onReqAborted () {
-    onReqFinished.call(this)
+    this.removeListener('aborted', onReqAborted)
+
     var res = this.res
     if (this.method !== 'HEAD' && this.method !== 'GET') {
       onResFinished.call(res, new Error('Aborted'))
@@ -62,7 +58,8 @@ function pinoLogger (opts, stream) {
   }
 
   function onReqTimeout () {
-    onReqFinished.call(this)
+    this.removeListener('aborted', onReqAborted)
+
     var res = this.res
     res.statusCode = 408
     onResFinished.call(res, new Error('Timeout'))
