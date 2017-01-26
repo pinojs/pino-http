@@ -291,9 +291,8 @@ test('react on aborted event from clientside', function (t) {
   }, logger)
 
   dest.on('data', function (line) {
-    t.equal(line.msg, 'request errored', 'message is set')
-    t.equal(line.err.message, 'Aborted', 'error message is set')
-    t.equal(line.res.statusCode, 408, 'statusCode is 408')
+    t.equal(line.msg, 'request aborted', 'message is set')
+    // t.equal(line.err.message, 'Aborted', 'error message is set')
     t.end()
   })
 })
@@ -325,7 +324,7 @@ test('react on aborted event from server', function (t) {
 
   dest.on('data', function (line) {
     t.equal(line.msg, 'request errored', 'message is set')
-    t.equal(line.err.message, 'Aborted', 'error message is set')
+    t.equal(line.err.message, 'Timeout', 'error message is set')
     t.equal(line.res.statusCode, 408, 'statusCode is 408')
     t.end()
   })

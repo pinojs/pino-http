@@ -24,7 +24,12 @@ function pinoLogger (opts, stream) {
   loggingMiddleware.logger = logger
   return loggingMiddleware
 
-  function onResFinished (err) {
+  function onReqFinished () {
+    this.removeListener('aborted', onReqAborted)
+    this.removeListener('timeout', onReqTimeout)
+  }
+
+  function onResFinished (err, aborted) {
     this.removeListener('finish', onResFinished)
     this.removeListener('error', onResFinished)
 
@@ -43,13 +48,24 @@ function pinoLogger (opts, stream) {
     log[useLevel]({
       res: this,
       responseTime: responseTime
-    }, 'request completed')
+    }, 'request ' + (aborted ? 'aborted' : 'completed'))
   }
 
   function onReqAborted () {
+    onReqFinished.call(this)
+    var res = this.res
+    if (this.method !== 'HEAD' && this.method !== 'GET') {
+      onResFinished.call(res, new Error('Aborted'), true)
+    } else {
+      onResFinished.call(res, null, true)
+    }
+  }
+
+  function onReqTimeout () {
+    onReqFinished.call(this)
     var res = this.res
     res.statusCode = 408
-    onResFinished.call(res, new Error('Aborted'))
+    onResFinished.call(res, new Error('Timeout'))
   }
 
   function loggingMiddleware (req, res, next) {
@@ -62,6 +78,7 @@ function pinoLogger (opts, stream) {
     res.on('error', onResFinished)
     // it's possible that browser aborts connection, or http-server because of timeout
     req.on('aborted', onReqAborted)
+    req.socket.on('timeout', onReqTimeout.bind(req))
 
     if (next) {
       next()
