@@ -292,12 +292,11 @@ test('react on aborted event from clientside', function (t) {
 
   dest.on('data', function (line) {
     t.equal(line.msg, 'request aborted', 'message is set')
-    // t.equal(line.err.message, 'Aborted', 'error message is set')
     t.end()
   })
 })
 
-test('react on aborted event from server', function (t) {
+test('react on timeout event from server', function (t) {
   var dest = split(JSON.parse)
 
   var idToTest
