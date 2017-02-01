@@ -19,6 +19,9 @@
     "ci": "standard && tap --cov test.js"
   },
   "author": "David Mark Clements",
+  "contributors": [
+    "Matteo Collina <hello@matteocollina.com>"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
