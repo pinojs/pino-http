@@ -4,7 +4,7 @@
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "dependencies": {
-    "pino": "^3.0.1"
+    "pino": "^4.0.2"
   },
   "devDependencies": {
     "coveralls": "^2.11.15",
