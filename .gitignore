@@ -38,3 +38,5 @@ profile*
 
 # nyc
 .nyc_output
+
+.DS_Store
