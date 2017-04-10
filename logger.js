@@ -12,6 +12,7 @@ function pinoLogger (opts, stream) {
   opts.serializers = opts.serializers || {}
   opts.serializers.req = opts.serializers.req || asReqValue
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
+  opts.serializers.err = opts.serializers.err || pino.stdSerializers.err
 
   var useLevel = opts.useLevel || 'info'
   delete opts.useLevel
