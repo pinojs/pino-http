@@ -209,6 +209,13 @@ It returns an object in the form:
 
 <https://twitter.com/davidmarkclem>
 
+<a name="acknowledgements"></a>
+## Acknowledgements
+
+This project was kindly sponsored by [nearForm](http://nearform.com).
+
+Logo and identity designed by Beibhinn Murphy O'Brien: https://www.behance.net/BeibhinnMurphyOBrien.
+
 ## License
 
 MIT
