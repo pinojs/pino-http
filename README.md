@@ -110,7 +110,9 @@ $ node example.js | pino
 var http = require('http')
 var server = http.createServer(handle)
 var pino = require('pino')()
-var logger = require('pino-http')({
+var pinoHttp = require('pino-http')
+
+var logger = pinoHttp({
   // Reuse an existing logger instance
   logger: pino,
 
@@ -119,8 +121,8 @@ var logger = require('pino-http')({
 
   // Define custom serializers
   serializers: {
-    req: pino.stdSerializers.req,
-    res: pino.stdSerializers.res
+    req: pinoHttp.stdSerializers.req,
+    res: pinoHttp.stdSerializers.res
   },
 
   // Logger level is `info` by default
