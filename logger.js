@@ -2,6 +2,8 @@
 
 var pino = require('pino')
 
+var startTime = Symbol('startTime')
+
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
     stream = opts
@@ -30,7 +32,7 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
 
     var log = this.log
-    var responseTime = Date.now() - this.startTime
+    var responseTime = Date.now() - this[startTime]
 
     if (err) {
       log.error({
@@ -50,7 +52,7 @@ function pinoLogger (opts, stream) {
   function loggingMiddleware (req, res, next) {
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
-    res.startTime = Date.now()
+    res[startTime] = res[startTime] || Date.now()
     if (!req.res) { req.res = res }
 
     res.on('finish', onResFinished)
@@ -105,3 +107,4 @@ module.exports.stdSerializers = {
   req: asReqValue,
   res: pino.stdSerializers.res
 }
+module.exports.startTime = startTime

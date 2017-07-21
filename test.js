@@ -164,6 +164,30 @@ test('reuses existing req.id if present', function (t) {
   })
 })
 
+test('startTime', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp(dest)
+  var someStartTime = 56
+
+  t.equal(typeof pinoHttp.startTime, 'symbol')
+
+  function loggerWithStartTime (req, res) {
+    res[pinoHttp.startTime] = someStartTime
+    logger(req, res)
+    t.equal(res[pinoHttp.startTime], someStartTime)
+  }
+
+  setup(t, loggerWithStartTime, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(typeof line.responseTime, 'number')
+    t.end()
+  })
+})
+
 test('responseTime', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp(dest)
