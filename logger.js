@@ -30,20 +30,20 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
 
     var log = this.log
-    var responseTime = Date.now() - this.startTime
+    this.responseTime = Date.now() - this.startTime
 
     if (err) {
       log.error({
         res: this,
         err: err,
-        responseTime: responseTime
+        responseTime: this.responseTime
       }, 'request errored')
       return
     }
 
     log[useLevel]({
       res: this,
-      responseTime: responseTime
+      responseTime: this.responseTime
     }, 'request completed')
   }
 
