@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
 
-benchmark_folder=`realpath "$(dirname $0)/../benchmarks"`
-find $benchmark_folder/* | xargs -i sh "$(dirname $0)/benchmark" {}
+set -e
+
+MYDIR=`dirname $0`
+benchmark_folder=$MYDIR/../benchmarks
+find $benchmark_folder/* | (while read SERVER; do set -e; $MYDIR/benchmark $SERVER; done)
