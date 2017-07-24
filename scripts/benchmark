@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+echo "##### `basename $1` #####"
+echo
+
+function cleanup {
+	# Do a silent cleanup
+	kill $server_pid > /dev/null 2>&1
+	wait $server_pid 2> /dev/null
+}
+trap cleanup EXIT ERR
+
+node "$1" > /dev/null &
+server_pid=$!
+
+# Warmup run
+autocannon -c 100 -d 5 -p 10 localhost:3000 > /dev/null 2>&1
+# Reported run
+autocannon -c 100 -d 5 -p 10 localhost:3000
+
+echo
