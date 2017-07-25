@@ -138,7 +138,7 @@ server.listen(3000)
 
 ##### pinoHttp.startTime (Symbol)
 
-The `pinoHttp` function has a property called `startTime` which contains a unique symbol
+The `pinoHttp` function has a property called `startTime` which contains a symbol
 which is used attach and reference a start time on the HTTP `res` object. If the function 
 returned from `pinoHttp` is not *the first* function to be called in an HTTP servers request
 listener function then the `responseTime` key in the log output will be offset by any 
