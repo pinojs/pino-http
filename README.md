@@ -136,6 +136,26 @@ function handle (req, res) {
 server.listen(3000)
 ```
 
+##### pinoHttp.startTime (Symbol)
+
+The `pinoHttp` function has a property called `startTime` which contains a symbol
+which is used attach and reference a start time on the HTTP `res` object. If the function 
+returned from `pinoHttp` is not *the first* function to be called in an HTTP servers request
+listener function then the `responseTime` key in the log output will be offset by any 
+processing that happens before a response is logged. This can be corrected by manually attaching
+the start time to the `res` object with the `pinoHttp.startTime` symbol, like so:
+
+```js
+var http = require('http')
+var logger = require('pino-http')()
+var someImportantThingThatHasToBeFirst = require('some-important-thing')
+http.createServer((req, res) => {
+  res[logger.startTime] = Date.now()
+  someImportantThingThatHasToBeFirst(req, res)
+  logger(req, res)
+  res.end('hello world')
+}).listen(3000)
+```
 
 #### Default serializers
 
