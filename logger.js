@@ -65,13 +65,14 @@ function pinoLogger (opts, stream) {
 }
 
 function asReqValue (req) {
+  var connection = req.connection
   return {
     id: req.id,
     method: req.method,
     url: req.url,
     headers: req.headers,
-    remoteAddress: req.connection.remoteAddress,
-    remotePort: req.connection.remotePort
+    remoteAddress: connection && connection.remoteAddress,
+    remotePort: connection && connection.remotePort
   }
 }
 
