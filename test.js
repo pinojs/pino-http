@@ -281,3 +281,25 @@ test('support a custom instance with custom genReqId function', function (t) {
     t.end()
   })
 })
+
+test('does not crash when no request connection object', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest)
+  })
+  t.plan(1)
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(9999, () => {
+    http.get('http://127.0.0.1:9999', (res) => {
+      t.pass('made it through logic path without crashing')
+    })
+  })
+
+  function handler (req, res) {
+    delete req.connection
+    logger(req, res)
+    res.end()
+  }
+})
