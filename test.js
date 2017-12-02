@@ -303,3 +303,34 @@ test('does not crash when no request connection object', function (t) {
     res.end()
   }
 })
+
+// https://github.com/pinojs/pino-http/issues/42
+test('does not return excessively log object', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      req: function (req) {
+        delete req.connection
+        return req
+      }
+    }
+  })
+  t.plan(1)
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+
+  dest.on('data', function (obj) {
+    t.is(Object.keys(obj.req).length, 6)
+  })
+})

@@ -12,7 +12,7 @@ function pinoLogger (opts, stream) {
 
   opts = opts || {}
   opts.serializers = opts.serializers || {}
-  opts.serializers.req = opts.serializers.req || asReqValue
+  opts.serializers.req = wrapReqSerializer(opts.serializers.req || asReqValue)
   opts.serializers.res = opts.serializers.res || pino.stdSerializers.res
   opts.serializers.err = opts.serializers.err || pino.stdSerializers.err
 
@@ -61,6 +61,18 @@ function pinoLogger (opts, stream) {
     if (next) {
       next()
     }
+  }
+}
+
+function wrapReqSerializer (serializer) {
+  if (serializer === asReqValue) return asReqValue
+  return function wrappedReqSerializer (req) {
+    var _req = asReqValue(req)
+    Object.defineProperty(_req, 'raw', {
+      enumerable: false,
+      value: req
+    })
+    return serializer(_req)
   }
 }
 
