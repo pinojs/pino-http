@@ -64,28 +64,71 @@ function pinoLogger (opts, stream) {
   }
 }
 
+var rawSymbol = Symbol.for('pino-raw-request')
+var pinoReqProto = Object.create({}, {
+  id: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  method: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  url: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  headers: {
+    enumerable: true,
+    writable: true,
+    value: {}
+  },
+  remoteAddress: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  remotePort: {
+    enumerable: true,
+    writable: true,
+    value: ''
+  },
+  raw: {
+    enumerable: false,
+    get: function () {
+      return this[rawSymbol]
+    },
+    set: function (val) {
+      this[rawSymbol] = val
+    }
+  }
+})
+Object.defineProperty(pinoReqProto, rawSymbol, {
+  writable: true,
+  value: {}
+})
+
 function wrapReqSerializer (serializer) {
   if (serializer === asReqValue) return asReqValue
   return function wrappedReqSerializer (req) {
-    var _req = asReqValue(req)
-    Object.defineProperty(_req, 'raw', {
-      enumerable: false,
-      value: req
-    })
-    return serializer(_req)
+    return serializer(asReqValue(req))
   }
 }
 
 function asReqValue (req) {
   var connection = req.connection
-  return {
-    id: req.id,
-    method: req.method,
-    url: req.url,
-    headers: req.headers,
-    remoteAddress: connection && connection.remoteAddress,
-    remotePort: connection && connection.remotePort
-  }
+  const _req = Object.create(pinoReqProto)
+  _req.id = req.id
+  _req.method = req.method
+  _req.url = req.url
+  _req.headers = req.headers
+  _req.remoteAddress = connection && connection.remoteAddress
+  _req.remotePort = connection && connection.remotePort
+  _req.raw = req
+  return _req
 }
 
 function wrapChild (opts, stream) {
