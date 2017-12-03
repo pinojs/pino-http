@@ -305,7 +305,7 @@ test('does not crash when no request connection object', function (t) {
 })
 
 // https://github.com/pinojs/pino-http/issues/42
-test('does not return excessively log object', function (t) {
+test('does not return excessively long object', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
     logger: pino(dest),
