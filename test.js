@@ -334,3 +334,30 @@ test('does not return excessively long object', function (t) {
     t.is(Object.keys(obj.req).length, 6)
   })
 })
+
+test('req.raw is available to custom serializers', function (t) {
+  t.plan(2)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      req: function (req) {
+        t.ok(req.raw)
+        t.ok(req.raw.connection)
+        return req
+      }
+    }
+  })
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+})
