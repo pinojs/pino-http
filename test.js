@@ -303,3 +303,114 @@ test('does not crash when no request connection object', function (t) {
     res.end()
   }
 })
+
+// https://github.com/pinojs/pino-http/issues/42
+test('does not return excessively long object', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      req: function (req) {
+        delete req.connection
+        return req
+      }
+    }
+  })
+  t.plan(1)
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+
+  dest.on('data', function (obj) {
+    t.is(Object.keys(obj.req).length, 6)
+  })
+})
+
+test('req.raw is available to custom serializers', function (t) {
+  t.plan(2)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      req: function (req) {
+        t.ok(req.raw)
+        t.ok(req.raw.connection)
+        return req
+      }
+    }
+  })
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+})
+
+test('res.raw is available to custom serializers', function (t) {
+  t.plan(2)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      res: function (res) {
+        t.ok(res.raw)
+        t.ok(res.raw.statusCode)
+        return res
+      }
+    }
+  })
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+})
+
+test('res.raw is not enumerable', function (t) {
+  t.plan(1)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      res: function (res) {
+        t.is(res.propertyIsEnumerable('raw'), false)
+        return res
+      }
+    }
+  })
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+})
