@@ -414,3 +414,29 @@ test('res.raw is not enumerable', function (t) {
     res.end()
   }
 })
+
+test('req.id has a non-function value', function (t) {
+  t.plan(1)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      req: function (req) {
+        t.is(Function.isPrototypeOf(req.id), false)
+        return req
+      }
+    }
+  })
+
+  var server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    const port = server.address().port
+    http.get(`http://127.0.0.1:${port}`, () => {})
+  })
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+  }
+})
