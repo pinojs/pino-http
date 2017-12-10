@@ -321,8 +321,7 @@ test('does not return excessively long object', function (t) {
   var server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    const port = server.address().port
-    http.get(`http://127.0.0.1:${port}`, () => {})
+    http.get(server.address(), () => {})
   })
 
   function handler (req, res) {
@@ -352,8 +351,7 @@ test('req.raw is available to custom serializers', function (t) {
   var server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    const port = server.address().port
-    http.get(`http://127.0.0.1:${port}`, () => {})
+    http.get(server.address(), () => {})
   })
 
   function handler (req, res) {
@@ -379,8 +377,7 @@ test('res.raw is available to custom serializers', function (t) {
   var server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    const port = server.address().port
-    http.get(`http://127.0.0.1:${port}`, () => {})
+    http.get(server.address(), () => {})
   })
 
   function handler (req, res) {
@@ -405,8 +402,7 @@ test('res.raw is not enumerable', function (t) {
   var server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    const port = server.address().port
-    http.get(`http://127.0.0.1:${port}`, () => {})
+    http.get(server.address(), () => {})
   })
 
   function handler (req, res) {
@@ -422,7 +418,7 @@ test('req.id has a non-function value', function (t) {
     logger: pino(dest),
     serializers: {
       req: function (req) {
-        t.is(Function.isPrototypeOf(req.id), false)
+        t.is(typeof req.id === 'function', false)
         return req
       }
     }
@@ -431,8 +427,7 @@ test('req.id has a non-function value', function (t) {
   var server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    const port = server.address().port
-    http.get(`http://127.0.0.1:${port}`, () => {})
+    http.get(server.address(), () => {})
   })
 
   function handler (req, res) {

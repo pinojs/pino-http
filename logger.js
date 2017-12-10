@@ -121,7 +121,7 @@ function wrapReqSerializer (serializer) {
 function asReqValue (req) {
   var connection = req.connection
   const _req = Object.create(pinoReqProto)
-  _req.id = Function.prototype.isPrototypeOf(req.id) ? req.id() : req.id
+  _req.id = typeof req.id === 'function' ? req.id() : req.id
   _req.method = req.method
   _req.url = req.url
   _req.headers = req.headers
