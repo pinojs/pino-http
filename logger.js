@@ -27,16 +27,17 @@ function pinoLogger (opts, stream) {
   loggingMiddleware.logger = logger
   return loggingMiddleware
 
-  function onResFinished () {
+  function onResFinished (err) {
+    this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
     var log = this.log
     var responseTime = Date.now() - this[startTime]
 
-    if (this.err || this.statusCode >= 400) {
+    if (err || this.err || this.statusCode >= 400) {
       log.error({
         res: this,
-        err: this.err || new Error('failed with status code' + this.statusCode),
+        err: err || this.err || new Error('failed with status code' + this.statusCode),
         responseTime: responseTime
       }, 'request errored')
       return
@@ -55,6 +56,7 @@ function pinoLogger (opts, stream) {
     if (!req.res) { req.res = res }
 
     res.on('finish', onResFinished)
+    res.on('error', onResFinished)
 
     if (next) {
       next()
