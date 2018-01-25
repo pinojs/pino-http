@@ -209,7 +209,8 @@ test('responseTime for errored request', function (t) {
   function handle (req, res) {
     logger(req, res)
     setTimeout(function () {
-      res.emit('error', new Error('Some error'))
+      res.err = new Error('Some error')
+      res.emit('finished')
       res.end()
     }, 100)
   }
