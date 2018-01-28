@@ -209,6 +209,22 @@ test('responseTime for errored request', function (t) {
   function handle (req, res) {
     logger(req, res)
     setTimeout(function () {
+      res.err = new Error('Some error')
+      res.emit('finished')
+      res.end()
+    }, 100)
+  }
+
+  expectResponseTime(t, dest, logger, handle)
+})
+
+test('responseTime for request emitting error event', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp(dest)
+
+  function handle (req, res) {
+    logger(req, res)
+    setTimeout(function () {
       res.emit('error', new Error('Some error'))
       res.end()
     }, 100)
