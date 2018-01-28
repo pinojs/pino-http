@@ -34,7 +34,7 @@ function pinoLogger (opts, stream) {
     var log = this.log
     var responseTime = Date.now() - this[startTime]
 
-    if (err || this.err || this.statusCode >= 400) {
+    if (err || this.err || this.statusCode >= 500) {
       log.error({
         res: this,
         err: err || this.err || new Error('failed with status code' + this.statusCode),
