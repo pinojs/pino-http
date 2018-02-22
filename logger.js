@@ -1,6 +1,7 @@
 'use strict'
 
 var pino = require('pino')
+var serializers = require('pino-std-serializers')
 
 var startTime = Symbol('startTime')
 
@@ -12,9 +13,9 @@ function pinoLogger (opts, stream) {
 
   opts = opts || {}
   opts.serializers = opts.serializers || {}
-  opts.serializers.req = wrapReqSerializer(opts.serializers.req || asReqValue)
-  opts.serializers.res = wrapResSerializer(opts.serializers.res || asResValue)
-  opts.serializers.err = opts.serializers.err || pino.stdSerializers.err
+  opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
+  opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
+  opts.serializers.err = opts.serializers.err || serializers.err
 
   var useLevel = opts.useLevel || 'info'
   delete opts.useLevel
@@ -64,114 +65,6 @@ function pinoLogger (opts, stream) {
   }
 }
 
-var rawSymbol = Symbol.for('pino-raw-ref')
-var pinoReqProto = Object.create({}, {
-  id: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  method: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  url: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  headers: {
-    enumerable: true,
-    writable: true,
-    value: {}
-  },
-  remoteAddress: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  remotePort: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  raw: {
-    enumerable: false,
-    get: function () {
-      return this[rawSymbol]
-    },
-    set: function (val) {
-      this[rawSymbol] = val
-    }
-  }
-})
-Object.defineProperty(pinoReqProto, rawSymbol, {
-  writable: true,
-  value: {}
-})
-
-function wrapReqSerializer (serializer) {
-  if (serializer === asReqValue) return asReqValue
-  return function wrappedReqSerializer (req) {
-    return serializer(asReqValue(req))
-  }
-}
-
-function asReqValue (req) {
-  var connection = req.connection
-  const _req = Object.create(pinoReqProto)
-  _req.id = typeof req.id === 'function' ? req.id() : req.id
-  _req.method = req.method
-  _req.url = req.url
-  _req.headers = req.headers
-  _req.remoteAddress = connection && connection.remoteAddress
-  _req.remotePort = connection && connection.remotePort
-  _req.raw = req
-  return _req
-}
-
-var pinoResProto = Object.create({}, {
-  statusCode: {
-    enumerable: true,
-    writable: true,
-    value: 0
-  },
-  header: {
-    enumerable: true,
-    writable: true,
-    value: ''
-  },
-  raw: {
-    enumerable: false,
-    get: function () {
-      return this[rawSymbol]
-    },
-    set: function (val) {
-      this[rawSymbol] = val
-    }
-  }
-})
-Object.defineProperty(pinoResProto, rawSymbol, {
-  writable: true,
-  value: {}
-})
-
-function asResValue (res) {
-  const _res = Object.create(pinoResProto)
-  _res.statusCode = res.statusCode
-  _res.header = res._header
-  _res.raw = res
-  return _res
-}
-
-function wrapResSerializer (serializer) {
-  if (serializer === asResValue) return asResValue
-  return function wrappedResSerializer (res) {
-    return serializer(asResValue(res))
-  }
-}
-
 function wrapChild (opts, stream) {
   var prevLogger = opts.logger
   var prevGenReqId = opts.genReqId
@@ -201,7 +94,7 @@ function reqIdGenFactory (func) {
 
 module.exports = pinoLogger
 module.exports.stdSerializers = {
-  req: asReqValue,
-  res: asResValue
+  req: serializers.req,
+  res: serializers.res
 }
 module.exports.startTime = startTime
