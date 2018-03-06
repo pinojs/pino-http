@@ -139,9 +139,9 @@ server.listen(3000)
 ##### pinoHttp.startTime (Symbol)
 
 The `pinoHttp` function has a property called `startTime` which contains a symbol
-that is used to attach and reference a start time on the HTTP `res` object. If the function 
+that is used to attach and reference a start time on the HTTP `res` object. If the function
 returned from `pinoHttp` is not *the first* function to be called in an HTTP servers request
-listener function then the `responseTime` key in the log output will be offset by any 
+listener function then the `responseTime` key in the log output will be offset by any
 processing that happens before a response is logged. This can be corrected by manually attaching
 the start time to the `res` object with the `pinoHttp.startTime` symbol, like so:
 
@@ -208,6 +208,28 @@ It returns an object in the form:
     header: 'HTTP/1.1 200 OK\r\nDate: Mon, 07 Mar 2016 12:23:18 GMT\r\nConnection: close\r\nContent-Length: 5\r\n\r\n'
   }
 }
+```
+
+#### Custom serializers
+
+Each of the standard serializers can be extended by supplying a corresponding
+custom serializer. For example, let's assume the `request` object has custom
+properties attached to it, and that all of the custom properties are prefixed
+by `foo`. In order to show these properties, along with the standard serialized
+properties, in the resulting logs, we can supply a serializer like:
+
+```js
+var http = require('http')
+var logger = require('pino-http')({
+  serializers: function (req) {
+    Object.keys(req.raw).forEach((k) => {
+      if (k.startsWith('foo')) {
+        req[k] = req.raw[k]
+      }
+    })
+    return req
+  }
+})
 ```
 
 ## Team
