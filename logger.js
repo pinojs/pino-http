@@ -38,7 +38,7 @@ function pinoLogger (opts, stream) {
     if (err || this.err || this.statusCode >= 500) {
       log.error({
         res: this,
-        err: err || this.err || new Error('failed with status code' + this.statusCode),
+        err: err || this.err || new Error('failed with status code ' + this.statusCode),
         responseTime: responseTime
       }, 'request errored')
       return
