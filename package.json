@@ -8,7 +8,7 @@
     "pino-std-serializers": "^1.0.0"
   },
   "devDependencies": {
-    "autocannon": "^0.16.5",
+    "autocannon": "^2.4.1",
     "coveralls": "^2.11.15",
     "http-ndjson": "^3.0.0",
     "pre-commit": "^1.1.2",
