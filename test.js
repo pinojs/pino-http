@@ -99,6 +99,24 @@ test('uses the log level passed in as an option', function (t) {
   })
 })
 
+test('uses the get log level passed in as an option', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ getUseLevel: function (res, err) {
+    return 'warn'
+  }}, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 40, 'level')
+    t.notOk(line.getUseLevel, 'getUseLevel not forwarded')
+    t.end()
+  })
+})
+
 test('allocate a unique id to every request', function (t) {
   t.plan(5)
 

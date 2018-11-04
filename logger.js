@@ -18,7 +18,9 @@ function pinoLogger (opts, stream) {
   opts.serializers.err = opts.serializers.err || serializers.err
 
   var useLevel = opts.useLevel || 'info'
+  var getUseLevel = opts.getUseLevel || function (res, err) { return err ? 'error' : useLevel }
   delete opts.useLevel
+  delete opts.getUseLevel
 
   var theStream = opts.stream || stream
   delete opts.stream
@@ -34,9 +36,10 @@ function pinoLogger (opts, stream) {
 
     var log = this.log
     var responseTime = Date.now() - this[startTime]
+    var level = getUseLevel(this, err)
 
     if (err || this.err || this.statusCode >= 500) {
-      log.error({
+      log[level]({
         res: this,
         err: err || this.err || new Error('failed with status code ' + this.statusCode),
         responseTime: responseTime
@@ -44,7 +47,7 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    log[useLevel]({
+    log[level]({
       res: this,
       responseTime: responseTime
     }, 'request completed')
