@@ -17,10 +17,14 @@ function pinoLogger (opts, stream) {
   opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
   opts.serializers.err = opts.serializers.err || serializers.err
 
+  if (opts.useLevel && opts.customLogLevel) {
+    throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
+  }
+
   var useLevel = opts.useLevel || 'info'
-  var getUseLevel = opts.getUseLevel || function (res, err) { return err ? 'error' : useLevel }
+  var customLogLevel = opts.customLogLevel
   delete opts.useLevel
-  delete opts.getUseLevel
+  delete opts.customLogLevel
 
   var theStream = opts.stream || stream
   delete opts.stream
@@ -36,7 +40,7 @@ function pinoLogger (opts, stream) {
 
     var log = this.log
     var responseTime = Date.now() - this[startTime]
-    var level = getUseLevel(this, err)
+    var level = customLogLevel ? customLogLevel(this, err) : useLevel
 
     if (err || this.err || this.statusCode >= 500) {
       log[level]({

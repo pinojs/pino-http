@@ -99,9 +99,9 @@ test('uses the log level passed in as an option', function (t) {
   })
 })
 
-test('uses the get log level passed in as an option', function (t) {
+test('uses the custom log level passed in as an option', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoHttp({ getUseLevel: function (res, err) {
+  var logger = pinoHttp({ customLogLevel: function (res, err) {
     return 'warn'
   }}, dest)
 
@@ -112,9 +112,22 @@ test('uses the get log level passed in as an option', function (t) {
 
   dest.on('data', function (line) {
     t.equal(line.level, 40, 'level')
-    t.notOk(line.getUseLevel, 'getUseLevel not forwarded')
+    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
     t.end()
   })
+})
+
+test('throw error if custom log level and log level passed in together', function (t) {
+  var dest = split(JSON.parse)
+  var throwFunction = function () {
+    pinoHttp({
+      useLevel: 'info',
+      customLogLevel: function (res, err) {
+        return 'warn'
+      }}, dest)
+  }
+  t.throws(throwFunction, {message: "You can't pass 'useLevel' and 'customLogLevel' together"})
+  t.end()
 })
 
 test('allocate a unique id to every request', function (t) {
