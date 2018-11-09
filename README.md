@@ -109,10 +109,10 @@ $ node example.js | pino
 
 var http = require('http')
 var server = http.createServer(handle)
-var pino = require('pino')()
+var pino = require('pino')
 var logger = require('pino-http')({
   // Reuse an existing logger instance
-  logger: pino,
+  logger: pino(),
 
   // Define a custom request id function
   genReqId: function (req) { return req.id },
