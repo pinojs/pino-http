@@ -96,6 +96,8 @@ $ node example.js | pino
 * `logger`: `pino-http` can reuse a pino instance if passed with the `logger` property
 * `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
+* `customLogLevel`: set to a `function (res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued. This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
+
 * `stream`: same as the second parameter
 
 `stream`: the destination stream. Could be passed in as an option too.
@@ -124,7 +126,18 @@ var logger = require('pino-http')({
   },
 
   // Logger level is `info` by default
-  useLevel: 'info'
+  useLevel: 'info',
+
+
+  // Define a custom logger level
+  customLogLevel: function (res, err) {
+    if (res.statusCode >= 400 && res.statusCode < 500) {
+      return 'warn'
+    } else if (res.statusCode >= 500 || err) {
+      return 'error'
+    }
+    return 'info'
+  }
 })
 
 function handle (req, res) {
