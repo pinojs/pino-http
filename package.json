@@ -5,7 +5,7 @@
   "main": "logger.js",
   "dependencies": {
     "pino": "^5.0.0",
-    "pino-std-serializers": "^2.1.0"
+    "pino-std-serializers": "^2.4.0"
   },
   "devDependencies": {
     "autocannon": "^2.4.1",
