@@ -381,6 +381,30 @@ test('does not return excessively long object', function (t) {
   })
 })
 
+test('err.raw is available to custom serializers', function (t) {
+  t.plan(1)
+  const error = new Error('foo')
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    logger: pino(dest),
+    serializers: {
+      err (err) {
+        t.equal(err.raw, error)
+      }
+    }
+  })
+
+  const server = http.createServer((req, res) => {
+    logger(req, res)
+    res.err = error
+    res.end()
+  })
+  server.unref()
+  server.listen(0, () => {
+    http.get(server.address(), () => {})
+  })
+})
+
 test('req.raw is available to custom serializers', function (t) {
   t.plan(2)
   var dest = split(JSON.parse)

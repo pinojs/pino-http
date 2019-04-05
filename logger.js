@@ -15,7 +15,7 @@ function pinoLogger (opts, stream) {
   opts.serializers = opts.serializers || {}
   opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
   opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
-  opts.serializers.err = opts.serializers.err || serializers.err
+  opts.serializers.err = serializers.wrapErrorSerializer(opts.serializers.err || serializers.err)
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -101,6 +101,7 @@ function reqIdGenFactory (func) {
 
 module.exports = pinoLogger
 module.exports.stdSerializers = {
+  err: serializers.err,
   req: serializers.req,
   res: serializers.res
 }

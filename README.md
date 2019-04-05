@@ -97,7 +97,6 @@ $ node example.js | pino
 * `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
 * `customLogLevel`: set to a `function (res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued. This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
-
 * `stream`: same as the second parameter
 
 `stream`: the destination stream. Could be passed in as an option too.
@@ -121,6 +120,7 @@ var logger = require('pino-http')({
 
   // Define custom serializers
   serializers: {
+    err: pino.stdSerializers.err,
     req: pino.stdSerializers.req,
     res: pino.stdSerializers.res
   },
@@ -234,13 +234,15 @@ properties, in the resulting logs, we can supply a serializer like:
 ```js
 var http = require('http')
 var logger = require('pino-http')({
-  serializers: function (req) {
-    Object.keys(req.raw).forEach((k) => {
-      if (k.startsWith('foo')) {
-        req[k] = req.raw[k]
-      }
-    })
-    return req
+  serializers: {
+    req (req) {
+      Object.keys(req.raw).forEach((k) => {
+        if (k.startsWith('foo')) {
+          req[k] = req.raw[k]
+        }
+      })
+      return req
+    }
   }
 })
 ```
