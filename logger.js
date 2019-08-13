@@ -29,6 +29,9 @@ function pinoLogger (opts, stream) {
   var theStream = opts.stream || stream
   delete opts.stream
 
+  var disableAutoLogging = opts.disableAutoLogging || false
+  delete opts.disableAutoLogging
+
   var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
@@ -63,8 +66,10 @@ function pinoLogger (opts, stream) {
     res[startTime] = res[startTime] || Date.now()
     if (!req.res) { req.res = res }
 
-    res.on('finish', onResFinished)
-    res.on('error', onResFinished)
+    if (!disableAutoLogging) {
+      res.on('finish', onResFinished)
+      res.on('error', onResFinished)
+    }
 
     if (next) {
       next()
