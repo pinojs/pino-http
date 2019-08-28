@@ -264,9 +264,9 @@ test('responseTime for request emitting error event', function (t) {
   expectResponseTime(t, dest, logger, handle)
 })
 
-test('no auto logging with disableAutoLogging', function (t) {
+test('no auto logging with autoLogging set to false', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoHttp({ disableAutoLogging: true }, dest)
+  var logger = pinoHttp({ autoLogging: false }, dest)
   var timeout
 
   function handle (req, res) {
