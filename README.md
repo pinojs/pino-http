@@ -248,7 +248,7 @@ var logger = require('pino-http')({
 })
 ```
 
-Another common use case is to log requests' bodies, which are not logged by default:
+Logging of requests' bodies is disabled by default since it can cause security risks such as having private user information (password, other GDPR-protected data, etc.) logged (and persisted in most setups). But if no such risk is present, and logging of the request body is desired, here is how:
 
 ```js
 const http = require('http')
