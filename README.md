@@ -248,6 +248,20 @@ var logger = require('pino-http')({
 })
 ```
 
+Another common use case is to log requests' bodies, which are not logged by default:
+
+```js
+const http = require('http')
+const logger = require('pino-http')({
+  serializers: {
+    req(req) {
+      req.body = req.raw.body;
+      return req;
+    },
+  },
+});
+```
+
 ## Team
 
 ### Matteo Collina
