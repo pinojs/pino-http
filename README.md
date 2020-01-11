@@ -248,7 +248,11 @@ var logger = require('pino-http')({
 })
 ```
 
-Logging of requests' bodies is disabled by default since it can cause security risks such as having private user information (password, other GDPR-protected data, etc.) logged (and persisted in most setups). But if no such risk is present, and logging of the request body is desired, here is how:
+Logging of requests' bodies is disabled by default since it can cause security risks such as having private user information (password, other GDPR-protected data, etc.) logged (and persisted in most setups). However if enabled, sensitive information can be redacted as per [redaction documentation](http://getpino.io/#/docs/redaction).
+
+Furthermore, logging more bytes does slow down throughput ([although the cost is negligible in most use cases](https://www.eschrade.com/page/the-cost-of-logging/)).
+
+After considering these factors, logging of the request body can be adchieved as follows:
 
 ```js
 const http = require('http')
