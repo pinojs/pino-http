@@ -252,7 +252,7 @@ Logging of requests' bodies is disabled by default since it can cause security r
 
 Furthermore, logging more bytes does slow down throughput ([although the cost is negligible in most use cases](https://www.eschrade.com/page/the-cost-of-logging/)).
 
-After considering these factors, logging of the request body can be adchieved as follows:
+After considering these factors, logging of the request body can be achieved as follows:
 
 ```js
 const http = require('http')
