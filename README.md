@@ -252,7 +252,7 @@ Logging of requests' bodies is disabled by default since it can cause security r
 
 Furthermore, logging more bytes does slow down throughput. [This video by pino maintainers Matteo Collina & David Mark Clements](https://www.youtube.com/watch?v=zja-_IYNrFc&feature=youtu.be) goes into this in more detail.
 
-After considering these factors, logging of the request body can be adchieved as follows:
+After considering these factors, logging of the request body can be achieved as follows:
 
 ```js
 const http = require('http')
