@@ -69,12 +69,13 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
+    var shouldLogSuccess = true
+
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
-      var shouldLogSuccess = true
       if (req.url && autoLoggingIgnorePaths.length) {
         for (let i = 0; shouldLogSuccess && i < autoLoggingIgnorePaths.length; i++) {
           shouldLogSuccess = req.url.match(autoLoggingIgnorePaths[i]) == null
