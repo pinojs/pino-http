@@ -74,8 +74,6 @@ function pinoLogger (opts, stream) {
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
-      // calculate here whether to log success, but apply this flag up to the last minute.
-      // this is to ensure that the event listener still executes (as there may be other logic that is needed).
       var shouldLogSuccess = true
       if (req.url && autoLoggingIgnorePaths.length) {
         for (let i = 0; shouldLogSuccess && i < autoLoggingIgnorePaths.length; i++) {
