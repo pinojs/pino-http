@@ -16,6 +16,8 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
   opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
   opts.serializers.err = serializers.wrapErrorSerializer(opts.serializers.err || serializers.err)
+  opts.autoLoggingOptions = opts.autoLoggingOptions || {}
+  opts.autoLoggingOptions.ignorePaths = opts.autoLoggingOptions.ignorePaths || []
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -29,8 +31,13 @@ function pinoLogger (opts, stream) {
   var theStream = opts.stream || stream
   delete opts.stream
 
+  // autoLogging && found in ignore.path => do not log
+  //                not found            => log as usual
   var autoLogging = (opts.autoLogging !== false)
   delete opts.autoLogging
+
+  var autoLoggingOptions = opts.autoLoggingOptions
+  delete opts.autoLoggingOptions
 
   var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
@@ -54,17 +61,27 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    log[level]({
-      res: this,
-      responseTime: responseTime
-    }, 'request completed')
+    var shouldLogSuccess = true
+    if (this._currentUrl && autoLoggingOptions && autoLoggingOptions.ignorePaths && autoLoggingOptions.ignorePaths.length) {
+      shouldLogSuccess = autoLoggingOptions.ignorePaths.find(x => this._currentUrl.match(x)) == null
+    }
+
+    if (shouldLogSuccess) {
+      log[level]({
+        res: this,
+        responseTime: responseTime
+      }, 'request completed')
+    }
   }
 
   function loggingMiddleware (req, res, next) {
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res[startTime] = res[startTime] || Date.now()
-    if (!req.res) { req.res = res }
+    res._currentUrl = req.url
+    if (!req.res) {
+      req.res = res
+    }
 
     if (autoLogging) {
       res.on('finish', onResFinished)
