@@ -62,12 +62,10 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    if (this.shouldLogSuccess) {
-      log[level]({
-        res: this,
-        responseTime: responseTime
-      }, 'request completed')
-    }
+    log[level]({
+      res: this,
+      responseTime: responseTime
+    }, 'request completed')
   }
 
   function loggingMiddleware (req, res, next) {
@@ -85,8 +83,10 @@ function pinoLogger (opts, stream) {
         }
       }
 
-      res.shouldLogSuccess = shouldLogSuccess
-      res.on('finish', onResFinished)
+      if (shouldLogSuccess) {
+        res.on('finish', onResFinished)
+      }
+
       res.on('error', onResFinished)
     }
 
