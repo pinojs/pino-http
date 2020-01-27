@@ -77,9 +77,9 @@ function pinoLogger (opts, stream) {
 
     if (autoLogging) {
       if (req.url && autoLoggingIgnorePaths.length) {
-        for (let i = 0; shouldLogSuccess && i < autoLoggingIgnorePaths.length; i++) {
-          shouldLogSuccess = req.url.match(autoLoggingIgnorePaths[i]) == null
-        }
+        // force the base, because req.url will not have it and URL class needs it.
+        var url = new URL(req.url, 'http://localhost')
+        shouldLogSuccess = !autoLoggingIgnorePaths.includes(url.pathname)
       }
 
       if (shouldLogSuccess) {

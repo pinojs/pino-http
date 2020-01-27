@@ -298,7 +298,7 @@ test('no auto logging with autoLogging set to true and path ignored', function (
   var logger = pinoHttp({
     autoLogging: true,
     autoLoggingOptions: {
-      ignorePaths: ['^/ignorethis$']
+      ignorePaths: ['/ignorethis']
     }
   }, dest)
   var timeout
@@ -332,7 +332,7 @@ test('auto logging with autoLogging set to true and path not ignored', function 
   var logger = pinoHttp({
     autoLogging: true,
     autoLoggingOptions: {
-      ignorePaths: ['^/ignorethis$']
+      ignorePaths: ['/ignorethis']
     }
   }, dest)
   var timeout
