@@ -62,14 +62,7 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    var shouldLogSuccess = true
-    if (this._currentUrl && autoLoggingIgnorePaths.length) {
-      for (let i = 0; shouldLogSuccess && i < autoLoggingIgnorePaths.length; i++) {
-        shouldLogSuccess = this._currentUrl.match(autoLoggingIgnorePaths[i]) == null
-      }
-    }
-
-    if (shouldLogSuccess) {
+    if (this.shouldLogSuccess) {
       log[level]({
         res: this,
         responseTime: responseTime
@@ -81,12 +74,18 @@ function pinoLogger (opts, stream) {
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res[startTime] = res[startTime] || Date.now()
-    res._currentUrl = req.url
-    if (!req.res) {
-      req.res = res
-    }
 
     if (autoLogging) {
+      // calculate here whether to log success, but apply this flag up to the last minute.
+      // this is to ensure that the event listener still executes (as there may be other logic that is needed).
+      var shouldLogSuccess = true
+      if (req.url && autoLoggingIgnorePaths.length) {
+        for (let i = 0; shouldLogSuccess && i < autoLoggingIgnorePaths.length; i++) {
+          shouldLogSuccess = req.url.match(autoLoggingIgnorePaths[i]) == null
+        }
+      }
+
+      res.shouldLogSuccess = shouldLogSuccess
       res.on('finish', onResFinished)
       res.on('error', onResFinished)
     }
