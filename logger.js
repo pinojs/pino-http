@@ -2,6 +2,7 @@
 
 var pino = require('pino')
 var serializers = require('pino-std-serializers')
+var URL = require('url').URL
 
 var startTime = Symbol('startTime')
 
