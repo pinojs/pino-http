@@ -2,8 +2,7 @@
 
 var pino = require('pino')
 var serializers = require('pino-std-serializers')
-var URL = require('url').URL
-
+var URL = require('fast-url-parser')
 var startTime = Symbol('startTime')
 
 function pinoLogger (opts, stream) {
@@ -78,8 +77,7 @@ function pinoLogger (opts, stream) {
 
     if (autoLogging) {
       if (req.url && autoLoggingIgnorePaths.length) {
-        // force the base, because req.url will not have it and URL class needs it.
-        var url = new URL(req.url, 'http://localhost')
+        var url = URL.parse(req.url)
         shouldLogSuccess = !autoLoggingIgnorePaths.includes(url.pathname)
       }
 
