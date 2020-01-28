@@ -99,7 +99,7 @@ $ node example.js | pino
 * `customLogLevel`: set to a `function (res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued. This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
 * `autoLogging`: set to `false` to disable the automatic "request completed" and "request errored" logging. Defaults to `true`.
 * `autoLoggingOptions`: additional options when `autoLogging == true`.
-* `autoLoggingOptions.ignorePaths`: array that holds one or many paths that should not autolog on completion. Paths will be matched exactly to the url path property (using Node URL class). If the path fails, it will still autolog. This is useful for e.g. health check paths that get called every X seconds, and would fill out our logs unnecessarily.
+* `autoLoggingOptions.ignorePaths`: array that holds one or many paths that should not autolog on completion. Paths will be matched exactly to the url path (using Node class `URL.pathname`). This is useful for ignoring e.g. health check paths that get called every X seconds, and would fill out our logs unnecessarily. If the path matches and succeeds (http 200), it will not log any text. If it fails, it will log the error (as with any other path).
 * `stream`: same as the second parameter
 
 `stream`: the destination stream. Could be passed in as an option too.
