@@ -30,7 +30,7 @@ function pinoLogger (opts, stream) {
   delete opts.stream
 
   var autoLogging = (opts.autoLogging !== false)
-  var autoLoggingIgnorePaths = ((opts.autoLogging || {}).ignorePaths || [])
+  var autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
   delete opts.autoLogging
 
   var logger = wrapChild(opts, theStream)
