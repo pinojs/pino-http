@@ -296,8 +296,7 @@ test('no auto logging with autoLogging set to false', function (t) {
 test('no auto logging with autoLogging set to true and path ignored', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
-    autoLogging: true,
-    autoLoggingOptions: {
+    autoLogging: {
       ignorePaths: ['/ignorethis']
     }
   }, dest)
@@ -330,8 +329,7 @@ test('no auto logging with autoLogging set to true and path ignored', function (
 test('auto logging with autoLogging set to true and path not ignored', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
-    autoLogging: true,
-    autoLoggingOptions: {
+    autoLogging: {
       ignorePaths: ['/ignorethis']
     }
   }, dest)

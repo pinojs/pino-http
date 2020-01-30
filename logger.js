@@ -16,8 +16,6 @@ function pinoLogger (opts, stream) {
   opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
   opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
   opts.serializers.err = serializers.wrapErrorSerializer(opts.serializers.err || serializers.err)
-  opts.autoLoggingOptions = opts.autoLoggingOptions || {}
-  opts.autoLoggingOptions.ignorePaths = opts.autoLoggingOptions.ignorePaths || []
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -31,14 +29,9 @@ function pinoLogger (opts, stream) {
   var theStream = opts.stream || stream
   delete opts.stream
 
-  // autoLogging && found in ignore.path => do not log
-  //                not found            => log as usual
   var autoLogging = (opts.autoLogging !== false)
+  var autoLoggingIgnorePaths = ((opts.autoLogging || {}).ignorePaths || [])
   delete opts.autoLogging
-
-  var autoLoggingIgnorePaths = opts.autoLoggingOptions.ignorePaths
-  delete opts.autoLoggingOptions.ignorePaths
-  delete opts.autoLoggingOptions
 
   var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
