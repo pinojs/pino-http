@@ -2,7 +2,7 @@
 
 var pino = require('pino')
 var serializers = require('pino-std-serializers')
-
+var URL = require('fast-url-parser')
 var startTime = Symbol('startTime')
 
 function pinoLogger (opts, stream) {
@@ -30,6 +30,7 @@ function pinoLogger (opts, stream) {
   delete opts.stream
 
   var autoLogging = (opts.autoLogging !== false)
+  var autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
   delete opts.autoLogging
 
   var logger = wrapChild(opts, theStream)
@@ -61,13 +62,22 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
+    var shouldLogSuccess = true
+
     req.id = genReqId(req)
     req.log = res.log = logger.child({req: req})
     res[startTime] = res[startTime] || Date.now()
-    if (!req.res) { req.res = res }
 
     if (autoLogging) {
-      res.on('finish', onResFinished)
+      if (req.url && autoLoggingIgnorePaths.length) {
+        var url = URL.parse(req.url)
+        shouldLogSuccess = !autoLoggingIgnorePaths.includes(url.pathname)
+      }
+
+      if (shouldLogSuccess) {
+        res.on('finish', onResFinished)
+      }
+
       res.on('error', onResFinished)
     }
 
