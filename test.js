@@ -359,6 +359,78 @@ test('auto logging with autoLogging set to true and path not ignored', function 
   }, handle)
 })
 
+test('no auto logging with autoLogging set to true and getPath result is ignored', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    autoLogging: {
+      ignorePaths: ['/ignorethis'],
+      getPath: function (req) {
+        return req.url
+      }
+    }
+  }, dest)
+  var timeout
+
+  function handle (req, res) {
+    logger(req, res)
+    setTimeout(function () {
+      res.end('hello world')
+    }, 100)
+  }
+
+  dest.on('data', function (line) {
+    clearTimeout(timeout)
+    t.fail('path had to be ignored, not logged')
+    t.end()
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, '/ignorethis')
+
+    timeout = setTimeout(function () {
+      t.pass('path ended without any logging')
+      t.end()
+    }, 200)
+  }, handle)
+})
+
+test('auto logging with autoLogging set to true and getPath result is not ignored', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    autoLogging: {
+      ignorePaths: ['/ignorethis'],
+      getPath: function (req) {
+        return req.url
+      }
+    }
+  }, dest)
+  var timeout
+
+  function handle (req, res) {
+    logger(req, res)
+    setTimeout(function () {
+      res.end('hello world')
+    }, 100)
+  }
+
+  dest.on('data', function (line) {
+    clearTimeout(timeout)
+    t.pass('path should log')
+    t.end()
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, '/shouldlogthis')
+
+    timeout = setTimeout(function () {
+      t.fail('path should not end without logging')
+      t.end()
+    }, 200)
+  }, handle)
+})
+
 function expectResponseTime (t, dest, logger, handle) {
   setup(t, logger, function (err, server) {
     t.error(err)
