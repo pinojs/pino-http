@@ -140,6 +140,19 @@ var logger = require('pino-http')({
       return 'error'
     }
     return 'info'
+  },
+
+  // Define a custom success message
+  customSuccessMessage: function (res) {
+    if (res.statusCode === 404) {
+      return 'resource not found'
+    }
+    return 'request completed'
+  },
+  
+  // Define a custom error message
+  customErrorMessage: function (error, res) {
+    return 'request errored with status code: ' + res.statusCode
   }
 })
 

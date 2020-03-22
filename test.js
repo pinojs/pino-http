@@ -6,11 +6,17 @@ var pinoHttp = require('./')
 var pino = require('pino')
 var split = require('split2')
 
+var ERROR_URL = '/make-error'
+
 function setup (t, logger, cb, handler) {
   var server = http.createServer(handler || function (req, res) {
     logger(req, res)
     if (req.url === '/') {
       res.end('hello world')
+      return
+    } else if (req.url === ERROR_URL) {
+      res.statusCode = 500
+      res.end('error')
       return
     }
     res.statusCode = 404
@@ -672,4 +678,40 @@ test('req.id has a non-function value', function (t) {
     logger(req, res)
     res.end()
   }
+})
+
+test('uses the custom successMessage callback if passed in as an option', function (t) {
+  var dest = split(JSON.parse)
+  var customResponseMessage = 'Custom response message'
+  var logger = pinoHttp({ customSuccessMessage: function () {
+    return customResponseMessage
+  }}, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.msg, customResponseMessage)
+    t.end()
+  })
+})
+
+test('uses the custom errorMessage callback if passed in as an option', function (t) {
+  var dest = split(JSON.parse)
+  var customErrorMessage = 'Custom error message'
+  var logger = pinoHttp({ customErrorMessage: function () {
+    return customErrorMessage
+  }}, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.msg, customErrorMessage)
+    t.end()
+  })
 })
