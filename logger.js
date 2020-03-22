@@ -109,6 +109,10 @@ function wrapChild (opts, stream) {
   } else {
     logger = pino(opts, stream)
   }
+  
+  if (!logger.silent) {
+    logger.silent = noop
+  }
 
   return logger
 }
@@ -121,6 +125,8 @@ function reqIdGenFactory (func) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
 }
+
+function noop () {}
 
 module.exports = pinoLogger
 module.exports.stdSerializers = {

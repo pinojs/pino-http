@@ -673,3 +673,31 @@ test('req.id has a non-function value', function (t) {
     res.end()
   }
 })
+
+test('no logging with "silent" log level', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ useLevel: 'silent' }, dest)
+  var timeout
+
+  function handle (req, res) {
+    logger(req, res)
+    setTimeout(function () {
+      res.end('hello world')
+    }, 100)
+  }
+
+  dest.on('data', function (line) {
+    clearTimeout(timeout)
+    t.error(line)
+    t.end()
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+
+    timeout = setTimeout(function () {
+      t.end()
+    }, 200)
+  }, handle)
+})
