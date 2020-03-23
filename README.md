@@ -101,6 +101,8 @@ $ node example.js | pino
 * `autoLogging.ignorePaths`: array that holds one or many paths that should not autolog on completion. Paths will be matched exactly to the url path `req.url` (using Node class `URL.pathname`). This is useful for ignoring e.g. health check paths that get called every X seconds, and would fill out the logs unnecessarily. If the path matches and succeeds (http 200), it will not log any text. If it fails, it will log the error (as with any other path).
 * `autoLogging.getPath`: set to a `function (req) => { /* returns path string */ }`. This function will be invoked to return the current path as a string. This is useful for checking `autoLogging.ignorePaths` against a path other than the default `req.url`. e.g. An express server where `req.originalUrl` is preferred.
 * `stream`: same as the second parameter
+* `customSuccessMessage`: set to a `function (res) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
+* `customErrorMessage`: set to a `function (res, err) => { /* returns message  string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
 
 `stream`: the destination stream. Could be passed in as an option too.
 
