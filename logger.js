@@ -34,6 +34,11 @@ function pinoLogger (opts, stream) {
   var autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
   delete opts.autoLogging
 
+  var successMessage = opts.customSuccessMessage || function () { return 'request completed' }
+  var errorMessage = opts.customErrorMessage || function () { return 'request errored ' }
+  delete opts.customSuccessfulMessage
+  delete opts.customErroredMessage
+
   var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
@@ -48,18 +53,20 @@ function pinoLogger (opts, stream) {
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
 
     if (err || this.err || this.statusCode >= 500) {
+      var error = err || this.err || new Error('failed with status code ' + this.statusCode)
+
       log[level]({
         res: this,
-        err: err || this.err || new Error('failed with status code ' + this.statusCode),
+        err: error,
         responseTime: responseTime
-      }, 'request errored')
+      }, errorMessage(error, this))
       return
     }
 
     log[level]({
       res: this,
       responseTime: responseTime
-    }, 'request completed')
+    }, successMessage(this))
   }
 
   function loggingMiddleware (req, res, next) {
