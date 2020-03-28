@@ -7,6 +7,7 @@ var pino = require('pino')
 var split = require('split2')
 
 var ERROR_URL = '/make-error'
+var noop = function () {}
 
 function setup (t, logger, cb, handler) {
   var server = http.createServer(handler || function (req, res) {
@@ -33,10 +34,11 @@ function setup (t, logger, cb, handler) {
   return server
 }
 
-function doGet (server, path) {
+function doGet (server, path, callback) {
   path = path || '/'
   var address = server.address()
-  return http.get('http://' + address.address + ':' + address.port + path)
+  var cb = callback || noop
+  return http.get('http://' + address.address + ':' + address.port + path, cb)
 }
 
 test('default settings', function (t) {
@@ -230,30 +232,30 @@ test('responseTime', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp(dest)
 
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
 
-  expectResponseTime(t, dest, logger, handle)
+  dest.on('data', function (line) {
+    t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.end()
+  })
 })
 
 test('responseTime for errored request', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp(dest)
 
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.err = new Error('Some error')
-      res.emit('finished')
-      res.end()
-    }, 100)
-  }
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
 
-  expectResponseTime(t, dest, logger, handle)
+  dest.on('data', function (line) {
+    t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.end()
+  })
 })
 
 test('responseTime for request emitting error event', function (t) {
@@ -262,41 +264,33 @@ test('responseTime for request emitting error event', function (t) {
 
   function handle (req, res) {
     logger(req, res)
-    setTimeout(function () {
-      res.emit('error', new Error('Some error'))
-      res.end()
-    }, 100)
+    res.emit('error', new Error('Some error'))
+    res.end()
   }
 
-  expectResponseTime(t, dest, logger, handle)
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  }, handle)
+
+  dest.on('data', function (line) {
+    t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.end()
+  })
 })
 
 test('no auto logging with autoLogging set to false', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({ autoLogging: false }, dest)
-  var timeout
-
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
-
-  dest.on('data', function (line) {
-    clearTimeout(timeout)
-    t.error(line)
-    t.end()
-  })
 
   setup(t, logger, function (err, server) {
     t.error(err)
-    doGet(server)
-
-    timeout = setTimeout(function () {
+    doGet(server, null, function () {
+      var line = dest.read()
+      t.equal(line, null)
       t.end()
-    }, 200)
-  }, handle)
+    })
+  })
 })
 
 test('no auto logging with autoLogging set to true and path ignored', function (t) {
@@ -306,30 +300,15 @@ test('no auto logging with autoLogging set to true and path ignored', function (
       ignorePaths: ['/ignorethis']
     }
   }, dest)
-  var timeout
-
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
-
-  dest.on('data', function (line) {
-    clearTimeout(timeout)
-    t.fail('path had to be ignored, not logged')
-    t.end()
-  })
 
   setup(t, logger, function (err, server) {
     t.error(err)
-    doGet(server, '/ignorethis')
-
-    timeout = setTimeout(function () {
-      t.pass('path ended without any logging')
+    doGet(server, '/ignorethis', function () {
+      var line = dest.read()
+      t.equal(line, null)
       t.end()
-    }, 200)
-  }, handle)
+    })
+  })
 })
 
 test('auto logging with autoLogging set to true and path not ignored', function (t) {
@@ -339,30 +318,16 @@ test('auto logging with autoLogging set to true and path not ignored', function 
       ignorePaths: ['/ignorethis']
     }
   }, dest)
-  var timeout
-
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
-
-  dest.on('data', function (line) {
-    clearTimeout(timeout)
-    t.pass('path should log')
-    t.end()
-  })
 
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, '/shouldlogthis')
+  })
 
-    timeout = setTimeout(function () {
-      t.fail('path should not end without logging')
-      t.end()
-    }, 200)
-  }, handle)
+  dest.on('data', function (line) {
+    t.pass('path should log')
+    t.end()
+  })
 })
 
 test('no auto logging with autoLogging set to true and getPath result is ignored', function (t) {
@@ -375,30 +340,15 @@ test('no auto logging with autoLogging set to true and getPath result is ignored
       }
     }
   }, dest)
-  var timeout
-
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
-
-  dest.on('data', function (line) {
-    clearTimeout(timeout)
-    t.fail('path had to be ignored, not logged')
-    t.end()
-  })
 
   setup(t, logger, function (err, server) {
     t.error(err)
-    doGet(server, '/ignorethis')
-
-    timeout = setTimeout(function () {
-      t.pass('path ended without any logging')
+    doGet(server, '/ignorethis', function () {
+      var line = dest.read()
+      t.equal(line, null)
       t.end()
-    }, 200)
-  }, handle)
+    })
+  })
 })
 
 test('auto logging with autoLogging set to true and getPath result is not ignored', function (t) {
@@ -411,44 +361,17 @@ test('auto logging with autoLogging set to true and getPath result is not ignore
       }
     }
   }, dest)
-  var timeout
-
-  function handle (req, res) {
-    logger(req, res)
-    setTimeout(function () {
-      res.end('hello world')
-    }, 100)
-  }
-
-  dest.on('data', function (line) {
-    clearTimeout(timeout)
-    t.pass('path should log')
-    t.end()
-  })
 
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, '/shouldlogthis')
-
-    timeout = setTimeout(function () {
-      t.fail('path should not end without logging')
-      t.end()
-    }, 200)
-  }, handle)
-})
-
-function expectResponseTime (t, dest, logger, handle) {
-  setup(t, logger, function (err, server) {
-    t.error(err)
-    doGet(server)
-  }, handle)
+  })
 
   dest.on('data', function (line) {
-    // let's take into account Node v0.10 is less precise
-    t.ok(line.responseTime >= 90, 'responseTime is defined and in ms')
+    t.pass('path should log')
     t.end()
   })
-}
+})
 
 test('support a custom instance', function (t) {
   var dest = split(JSON.parse)
