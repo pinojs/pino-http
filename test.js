@@ -638,3 +638,52 @@ test('uses the custom errorMessage callback if passed in as an option', function
     t.end()
   })
 })
+
+test('uses custom log object attribute keys when provided, successful request', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    customAttributeKeys: {
+      req: 'httpReq',
+      res: 'httpRes',
+      err: 'httpErr',
+      responseTime: 'timeTaken'
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.httpReq, 'httpReq is defined')
+    t.ok(line.httpRes, 'httpRes is defined')
+    t.equal(typeof line.timeTaken, 'number')
+    t.end()
+  })
+})
+
+test('uses custom log object attribute keys when provided, error request', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    customAttributeKeys: {
+      req: 'httpReq',
+      res: 'httpRes',
+      err: 'httpErr',
+      responseTime: 'timeTaken'
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.httpReq, 'httpReq is defined')
+    t.ok(line.httpRes, 'httpRes is defined')
+    t.ok(line.httpErr, 'httpRes is defined')
+    t.equal(typeof line.timeTaken, 'number')
+    t.end()
+  })
+})

@@ -12,10 +12,23 @@ function pinoLogger (opts, stream) {
   }
 
   opts = opts || {}
+
+  opts.customAttributeKeys = opts.customAttributeKeys || {}
+  var attributeKeys = {
+    req: opts.customAttributeKeys.req || 'req',
+    res: opts.customAttributeKeys.res || 'res',
+    err: opts.customAttributeKeys.err || 'err',
+    responseTime: opts.customAttributeKeys.responseTime || 'responseTime'
+  }
+  delete opts.customAttributeKeys
+
   opts.serializers = opts.serializers || {}
-  opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
-  opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
-  opts.serializers.err = serializers.wrapErrorSerializer(opts.serializers.err || serializers.err)
+  var requestSerializer = opts.serializers[attributeKeys.req] || opts.serializers.req || serializers.req
+  var responseSerializer = opts.serializers[attributeKeys.res] || opts.serializers.res || serializers.res
+  var errorSerializer = opts.serializers[attributeKeys.err] || opts.serializers.err || serializers.err
+  opts.serializers[attributeKeys.req] = serializers.wrapRequestSerializer(requestSerializer)
+  opts.serializers[attributeKeys.res] = serializers.wrapResponseSerializer(responseSerializer)
+  opts.serializers[attributeKeys.err] = serializers.wrapErrorSerializer(errorSerializer)
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -51,29 +64,31 @@ function pinoLogger (opts, stream) {
     var log = this.log
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
+    var payload = {}
+
+    payload[attributeKeys.res] = this
+    payload[attributeKeys.responseTime] = responseTime
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
+      payload[attributeKeys.err] = error
 
-      log[level]({
-        res: this,
-        err: error,
-        responseTime: responseTime
-      }, errorMessage(error, this))
+      log[level](payload, errorMessage(error, this))
       return
     }
 
-    log[level]({
-      res: this,
-      responseTime: responseTime
-    }, successMessage(this))
+    log[level](payload, successMessage(this))
   }
 
   function loggingMiddleware (req, res, next) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-    req.log = res.log = logger.child({req: req})
+
+    var childPayload = {}
+    childPayload[attributeKeys.req] = req
+
+    req.log = res.log = logger.child(childPayload)
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
