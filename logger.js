@@ -12,10 +12,21 @@ function pinoLogger (opts, stream) {
   }
 
   opts = opts || {}
+
+  opts.customAttributeKeys = opts.customAttributeKeys || {}
+  var reqKey = opts.customAttributeKeys.req || 'req'
+  var resKey = opts.customAttributeKeys.res || 'res'
+  var errKey = opts.customAttributeKeys.err || 'err'
+  var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
+  delete opts.customAttributeKeys
+
   opts.serializers = opts.serializers || {}
-  opts.serializers.req = serializers.wrapRequestSerializer(opts.serializers.req || serializers.req)
-  opts.serializers.res = serializers.wrapResponseSerializer(opts.serializers.res || serializers.res)
-  opts.serializers.err = serializers.wrapErrorSerializer(opts.serializers.err || serializers.err)
+  var requestSerializer = opts.serializers[reqKey] || opts.serializers.req || serializers.req
+  var responseSerializer = opts.serializers[resKey] || opts.serializers.res || serializers.res
+  var errorSerializer = opts.serializers[errKey] || opts.serializers.err || serializers.err
+  opts.serializers[reqKey] = serializers.wrapRequestSerializer(requestSerializer)
+  opts.serializers[resKey] = serializers.wrapResponseSerializer(responseSerializer)
+  opts.serializers[errKey] = serializers.wrapErrorSerializer(errorSerializer)
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -56,16 +67,16 @@ function pinoLogger (opts, stream) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
       log[level]({
-        res: this,
-        err: error,
-        responseTime: responseTime
+        [resKey]: this,
+        [errKey]: error,
+        [responseTimeKey]: responseTime
       }, errorMessage(error, this))
       return
     }
 
     log[level]({
-      res: this,
-      responseTime: responseTime
+      [resKey]: this,
+      [responseTimeKey]: responseTime
     }, successMessage(this))
   }
 
@@ -73,7 +84,7 @@ function pinoLogger (opts, stream) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-    req.log = res.log = logger.child({req: req})
+    req.log = res.log = logger.child({[reqKey]: req})
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {

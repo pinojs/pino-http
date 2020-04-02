@@ -40,3 +40,6 @@ profile*
 .nyc_output
 
 .DS_Store
+
+# lockfile
+package-lock.json

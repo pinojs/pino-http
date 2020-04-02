@@ -53,7 +53,7 @@ server.listen(3000)
 ```
 
 ```
-$ node example.js | pino
+$ node example.js | pino-pretty
 [2016-03-31T16:53:21.079Z] INFO (46316 on MBP-di-Matteo): something else
     req: {
       "id": 1,
@@ -103,6 +103,7 @@ $ node example.js | pino
 * `stream`: same as the second parameter
 * `customSuccessMessage`: set to a `function (res) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
 * `customErrorMessage`: set to a `function (res, err) => { /* returns message  string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
+* `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, and `responseTime`. 
 
 `stream`: the destination stream. Could be passed in as an option too.
 
@@ -133,7 +134,6 @@ var logger = require('pino-http')({
   // Logger level is `info` by default
   useLevel: 'info',
 
-
   // Define a custom logger level
   customLogLevel: function (res, err) {
     if (res.statusCode >= 400 && res.statusCode < 500) {
@@ -155,6 +155,14 @@ var logger = require('pino-http')({
   // Define a custom error message
   customErrorMessage: function (error, res) {
     return 'request errored with status code: ' + res.statusCode
+  },
+
+  // Override attribute keys for the log object
+  customAttributeKeys: {
+    req: 'request',
+    res: 'response',
+    err: 'error',
+    responseTime: 'timeTaken'
   }
 })
 
@@ -265,6 +273,8 @@ var logger = require('pino-http')({
 })
 ```
 
+##### Logging request body
+
 Logging of requests' bodies is disabled by default since it can cause security risks such as having private user information (password, other GDPR-protected data, etc.) logged (and persisted in most setups). However if enabled, sensitive information can be redacted as per [redaction documentation](http://getpino.io/#/docs/redaction).
 
 Furthermore, logging more bytes does slow down throughput. [This video by pino maintainers Matteo Collina & David Mark Clements](https://www.youtube.com/watch?v=zja-_IYNrFc&feature=youtu.be) goes into this in more detail.
@@ -282,6 +292,12 @@ const logger = require('pino-http')({
   },
 });
 ```
+
+##### Custom serializers + custom log attribute keys
+
+If custom attribute keys for `req`, `res`, or `err` log keys have been provided, serializers will be applied with the following order of precedence:
+
+`serializer matching custom key` > `serializer matching default key` > `default pino serializer`
 
 ## Team
 
