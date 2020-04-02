@@ -62,31 +62,29 @@ function pinoLogger (opts, stream) {
     var log = this.log
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
-    var payload = {}
-
-    payload[resKey] = this
-    payload[responseTimeKey] = responseTime
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
-      payload[errKey] = error
 
-      log[level](payload, errorMessage(error, this))
+      log[level]({
+        [resKey]: this,
+        [errKey]: error,
+        [responseTimeKey]: responseTime
+      }, errorMessage(error, this))
       return
     }
 
-    log[level](payload, successMessage(this))
+    log[level]({
+      [resKey]: this,
+      [responseTimeKey]: responseTime
+    }, successMessage(this))
   }
 
   function loggingMiddleware (req, res, next) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-
-    var childPayload = {}
-    childPayload[reqKey] = req
-
-    req.log = res.log = logger.child(childPayload)
+    req.log = res.log = logger.child({[reqKey]: req})
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
