@@ -14,21 +14,19 @@ function pinoLogger (opts, stream) {
   opts = opts || {}
 
   opts.customAttributeKeys = opts.customAttributeKeys || {}
-  var attributeKeys = {
-    req: opts.customAttributeKeys.req || 'req',
-    res: opts.customAttributeKeys.res || 'res',
-    err: opts.customAttributeKeys.err || 'err',
-    responseTime: opts.customAttributeKeys.responseTime || 'responseTime'
-  }
+  var reqKey = opts.customAttributeKeys.req || 'req'
+  var resKey = opts.customAttributeKeys.res || 'res'
+  var errKey = opts.customAttributeKeys.err || 'err'
+  var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
   opts.serializers = opts.serializers || {}
-  var requestSerializer = opts.serializers[attributeKeys.req] || opts.serializers.req || serializers.req
-  var responseSerializer = opts.serializers[attributeKeys.res] || opts.serializers.res || serializers.res
-  var errorSerializer = opts.serializers[attributeKeys.err] || opts.serializers.err || serializers.err
-  opts.serializers[attributeKeys.req] = serializers.wrapRequestSerializer(requestSerializer)
-  opts.serializers[attributeKeys.res] = serializers.wrapResponseSerializer(responseSerializer)
-  opts.serializers[attributeKeys.err] = serializers.wrapErrorSerializer(errorSerializer)
+  var requestSerializer = opts.serializers[reqKey] || opts.serializers.req || serializers.req
+  var responseSerializer = opts.serializers[resKey] || opts.serializers.res || serializers.res
+  var errorSerializer = opts.serializers[errKey] || opts.serializers.err || serializers.err
+  opts.serializers[reqKey] = serializers.wrapRequestSerializer(requestSerializer)
+  opts.serializers[resKey] = serializers.wrapResponseSerializer(responseSerializer)
+  opts.serializers[errKey] = serializers.wrapErrorSerializer(errorSerializer)
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
@@ -66,12 +64,12 @@ function pinoLogger (opts, stream) {
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
     var payload = {}
 
-    payload[attributeKeys.res] = this
-    payload[attributeKeys.responseTime] = responseTime
+    payload[resKey] = this
+    payload[responseTimeKey] = responseTime
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
-      payload[attributeKeys.err] = error
+      payload[errKey] = error
 
       log[level](payload, errorMessage(error, this))
       return
@@ -86,7 +84,7 @@ function pinoLogger (opts, stream) {
     req.id = genReqId(req)
 
     var childPayload = {}
-    childPayload[attributeKeys.req] = req
+    childPayload[reqKey] = req
 
     req.log = res.log = logger.child(childPayload)
     res[startTime] = res[startTime] || Date.now()
