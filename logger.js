@@ -84,7 +84,7 @@ function pinoLogger (opts, stream) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-    req.log = res.log = logger.child({[reqKey]: req})
+    req.log = res.log = logger.child({ [reqKey]: req })
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
