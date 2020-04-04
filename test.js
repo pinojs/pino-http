@@ -110,9 +110,11 @@ test('uses the log level passed in as an option', function (t) {
 
 test('uses the custom log level passed in as an option', function (t) {
   var dest = split(JSON.parse)
-  var logger = pinoHttp({ customLogLevel: function (res, err) {
-    return 'warn'
-  }}, dest)
+  var logger = pinoHttp({
+    customLogLevel: function (res, err) {
+      return 'warn'
+    }
+  }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -133,9 +135,10 @@ test('throw error if custom log level and log level passed in together', functio
       useLevel: 'info',
       customLogLevel: function (res, err) {
         return 'warn'
-      }}, dest)
+      }
+    }, dest)
   }
-  t.throws(throwFunction, {message: "You can't pass 'useLevel' and 'customLogLevel' together"})
+  t.throws(throwFunction, { message: "You can't pass 'useLevel' and 'customLogLevel' together" })
   t.end()
 })
 
@@ -170,7 +173,7 @@ test('uses a custom genReqId function', function (t) {
     return idToTest
   }
 
-  var logger = pinoHttp({genReqId: genReqId}, dest)
+  var logger = pinoHttp({ genReqId: genReqId }, dest)
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server)
@@ -560,7 +563,7 @@ test('res.raw is not enumerable', function (t) {
     logger: pino(dest),
     serializers: {
       res: function (res) {
-        t.is(res.propertyIsEnumerable('raw'), false)
+        t.is(Object.prototype.propertyIsEnumerable.call(res, 'raw'), false)
         return res
       }
     }
@@ -606,9 +609,11 @@ test('req.id has a non-function value', function (t) {
 test('uses the custom successMessage callback if passed in as an option', function (t) {
   var dest = split(JSON.parse)
   var customResponseMessage = 'Custom response message'
-  var logger = pinoHttp({ customSuccessMessage: function () {
-    return customResponseMessage
-  }}, dest)
+  var logger = pinoHttp({
+    customSuccessMessage: function () {
+      return customResponseMessage
+    }
+  }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -624,9 +629,11 @@ test('uses the custom successMessage callback if passed in as an option', functi
 test('uses the custom errorMessage callback if passed in as an option', function (t) {
   var dest = split(JSON.parse)
   var customErrorMessage = 'Custom error message'
-  var logger = pinoHttp({ customErrorMessage: function () {
-    return customErrorMessage
-  }}, dest)
+  var logger = pinoHttp({
+    customErrorMessage: function () {
+      return customErrorMessage
+    }
+  }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
