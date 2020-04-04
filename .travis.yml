@@ -3,7 +3,7 @@ sudo: false
 node_js:
 - '10'
 - '12'
-- '14'
+- '13'
 script:
 - npm run ci
 env:
