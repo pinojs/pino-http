@@ -20,13 +20,16 @@ function pinoLogger (opts, stream) {
   var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
-  opts.serializers = opts.serializers || {}
-  var requestSerializer = opts.serializers[reqKey] || opts.serializers.req || serializers.req
-  var responseSerializer = opts.serializers[resKey] || opts.serializers.res || serializers.res
-  var errorSerializer = opts.serializers[errKey] || opts.serializers.err || serializers.err
-  opts.serializers[reqKey] = serializers.wrapRequestSerializer(requestSerializer)
-  opts.serializers[resKey] = serializers.wrapResponseSerializer(responseSerializer)
-  opts.serializers[errKey] = serializers.wrapErrorSerializer(errorSerializer)
+  opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
+  if (opts.wrapSerializers) {
+    opts.serializers = Object.assign({}, opts.serializers) || {}
+    var requestSerializer = opts.serializers[reqKey] || opts.serializers.req || serializers.req
+    var responseSerializer = opts.serializers[resKey] || opts.serializers.res || serializers.res
+    var errorSerializer = opts.serializers[errKey] || opts.serializers.err || serializers.err
+    opts.serializers[reqKey] = serializers.wrapRequestSerializer(requestSerializer)
+    opts.serializers[resKey] = serializers.wrapResponseSerializer(responseSerializer)
+    opts.serializers[errKey] = serializers.wrapErrorSerializer(errorSerializer)
+  }
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
