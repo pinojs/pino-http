@@ -132,6 +132,10 @@ var logger = require('pino-http')({
     res: pino.stdSerializers.res
   },
 
+  // Prevent serializers from being wrapped with std serializers
+  // (useful if you want to honor the serializers defined by `opts.logger`)
+  wrapSerializers: false,
+
   // Logger level is `info` by default
   useLevel: 'info',
 
@@ -259,7 +263,6 @@ by `foo`. In order to show these properties, along with the standard serialized
 properties, in the resulting logs, we can supply a serializer like:
 
 ```js
-var http = require('http')
 var logger = require('pino-http')({
   serializers: {
     req (req) {
@@ -274,10 +277,11 @@ var logger = require('pino-http')({
 })
 ```
 
-If you prefer to work with the raw value directly, you can pass in `opts.wrapSerializers` as `false`:
+If you prefer to work with the raw value directly, or you want to honor the custom
+serializers already defined by `opts.logger`, you can pass in `opts.wrapSerializers`
+as `false`:
 
 ```js
-var http = require('http')
 var logger = require('pino-http')({
   wrapSerializers: false,
   serializers: {
