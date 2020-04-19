@@ -30,6 +30,7 @@ function pinoLogger (opts, stream) {
     opts.serializers[resKey] = serializers.wrapResponseSerializer(responseSerializer)
     opts.serializers[errKey] = serializers.wrapErrorSerializer(errorSerializer)
   }
+  delete opts.wrapSerializers
 
   if (opts.useLevel && opts.customLogLevel) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
