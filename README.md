@@ -132,9 +132,8 @@ var logger = require('pino-http')({
     res: pino.stdSerializers.res
   },
 
-  // Prevent serializers from being wrapped with std serializers
-  // (useful if you want to honor the serializers defined by `opts.logger`)
-  wrapSerializers: false,
+  // Set to `false` to prevent standard serializers from being wrapped.
+  wrapSerializers: true,
 
   // Logger level is `info` by default
   useLevel: 'info',
