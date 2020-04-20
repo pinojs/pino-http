@@ -5,7 +5,7 @@ High-speed HTTP logger for Node.js
 To our knowledge, `pino-http` is the [fastest](#benchmarks) HTTP logger in town.
 
 * [Installation](#install)
-* [Usage](#usage)
+* [Example](#example)
 * [Benchmarks](#benchmarks)
 * [API](#api)
 * [Team](#team)
