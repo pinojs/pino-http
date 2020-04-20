@@ -581,6 +581,45 @@ test('res.raw is not enumerable', function (t) {
   }
 })
 
+test('err.raw, req.raw and res.raw are passed into custom serializers directly, when opts.wrapSerializers is false', (t) => {
+  t.plan(6)
+  const error = new Error('foo')
+  const dest = split(JSON.parse)
+
+  const server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    http.get(server.address(), () => {})
+  })
+
+  function handler (request, response) {
+    const logger = pinoHttp({
+      logger: pino(dest),
+      wrapSerializers: false,
+      serializers: {
+        err: function (err) {
+          t.notOk(err.raw)
+          t.equal(err, error)
+          return err
+        },
+        req: function (req) {
+          t.notOk(req.raw)
+          t.equal(req, request)
+          return req
+        },
+        res: function (res) {
+          t.notOk(res.raw)
+          t.equal(res, response)
+          return res
+        }
+      }
+    })
+    logger(request, response)
+    response.err = error
+    response.end()
+  }
+})
+
 test('req.id has a non-function value', function (t) {
   t.plan(1)
   var dest = split(JSON.parse)
