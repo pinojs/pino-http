@@ -50,7 +50,7 @@ function pinoLogger (opts, stream) {
   delete opts.autoLogging
 
   var successMessage = opts.customSuccessMessage || function () { return 'request completed' }
-  var errorMessage = opts.customErrorMessage || function () { return 'request errored ' }
+  var errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
 
