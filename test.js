@@ -257,6 +257,7 @@ test('responseTime for errored request', function (t) {
 
   dest.on('data', function (line) {
     t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.equal(line.msg, 'request errored', 'message is set')
     t.end()
   })
 })
