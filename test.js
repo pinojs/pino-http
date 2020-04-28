@@ -377,6 +377,30 @@ test('auto logging with autoLogging set to true and getPath result is not ignore
   })
 })
 
+test('no auto logging with autoLogging set to use regular expressions. result is ignored', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    autoLogging: {
+      ignorePaths: [/\/[A-z]{4}\/ignorethis/, '/another-ignored-path'],
+      getPath: function (req) {
+        return req.url
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, '/abcd/ignorethis')
+    doGet(server, '/another-ignored-path')
+    doGet(server, '/abcd0/shouldlogthis')
+  })
+
+  dest.on('data', function (line) {
+    t.pass('path should log')
+    t.end()
+  })
+})
+
 test('support a custom instance', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
