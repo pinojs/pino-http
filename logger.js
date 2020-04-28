@@ -101,7 +101,11 @@ function pinoLogger (opts, stream) {
         }
         if (url && url.pathname) {
           shouldLogSuccess = !autoLoggingIgnorePaths.find(ignorePath => {
-            return new RegExp(ignorePath).test(url.pathname)
+            if (ignorePath instanceof RegExp) {
+              return ignorePath.test(url.pathname)
+            }
+
+            return ignorePath === url.pathname
           })
         }
       }
