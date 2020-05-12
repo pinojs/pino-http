@@ -14,6 +14,7 @@ function pinoLogger (opts, stream) {
   opts = Object.assign({}, opts)
 
   opts.customAttributeKeys = opts.customAttributeKeys || {}
+  var uuidKey = opts.customAttributeKeys.uuid || 'uuid'
   var reqKey = opts.customAttributeKeys.req || 'req'
   var resKey = opts.customAttributeKeys.res || 'res'
   var errKey = opts.customAttributeKeys.err || 'err'
@@ -88,7 +89,7 @@ function pinoLogger (opts, stream) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-    req.log = res.log = logger.child({ [reqKey]: req })
+    req.log = res.log = logger.child({ [uuidKey]: req.uuid, [reqKey]: req })
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {
