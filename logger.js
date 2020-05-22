@@ -20,6 +20,8 @@ function pinoLogger (opts, stream) {
   var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
+  var reqCustomProps = opts.reqCustomProps || {}
+
   opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
   if (opts.wrapSerializers) {
     opts.serializers = Object.assign({}, opts.serializers)
@@ -88,7 +90,15 @@ function pinoLogger (opts, stream) {
     var shouldLogSuccess = true
 
     req.id = genReqId(req)
-    req.log = res.log = logger.child({ [reqKey]: req })
+
+    var log = logger.child({ [reqKey]: req })
+
+    if (reqCustomProps) {
+      var customPropBindings = (typeof reqCustomProps === 'function') ? reqCustomProps(req) : reqCustomProps
+      log = log.child(customPropBindings)
+    }
+    req.log = res.log = log
+
     res[startTime] = res[startTime] || Date.now()
 
     if (autoLogging) {

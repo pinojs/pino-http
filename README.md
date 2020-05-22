@@ -105,7 +105,7 @@ $ node example.js | pino-pretty
 * `customErrorMessage`: set to a `function (res, err) => { /* returns message  string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
 * `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, and `responseTime`. 
 * `wrapSerializers`: when `false`, custom serializers will be passed the raw value directly. Defaults to `true`.
-
+* `reqCustomProps`: set to a `function (req) => { /* returns on object */ }` or `{ /* returns on object */ }` This function will be invoked for each request with `req` where we could pass additional properties that needs to be logged outside the `req`.   
 `stream`: the destination stream. Could be passed in as an option too.
 
 #### Examples
@@ -160,14 +160,20 @@ var logger = require('pino-http')({
   customErrorMessage: function (error, res) {
     return 'request errored with status code: ' + res.statusCode
   },
-
   // Override attribute keys for the log object
   customAttributeKeys: {
     req: 'request',
     res: 'response',
     err: 'error',
     responseTime: 'timeTaken'
-  }
+  },
+  
+  // Define additional custom request properties
+  reqCustomProps: function (req) {
+    return {
+      customProp: req.customProp
+    }
+  } 
 })
 
 function handle (req, res) {
