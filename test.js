@@ -734,3 +734,69 @@ test('uses custom log object attribute keys when provided, error request', funct
     t.end()
   })
 })
+
+test('uses custom request properties to log additional attributes when provided', function (t) {
+  var dest = split(JSON.parse)
+  function customPropsHandler (req) {
+    if (req) {
+      return {
+        key1: 'value1',
+        key2: 'value2'
+      }
+    }
+  }
+  var logger = pinoHttp({
+    reqCustomProps: customPropsHandler
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.key1, 'value1')
+    t.equal(line.key2, 'value2')
+    t.end()
+  })
+})
+
+test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    reqCustomProps: { key1: 'value1' }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.key1, 'value1')
+    t.end()
+  })
+})
+
+test('dont pass custom request properties to log additional attributes', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    reqCustomProps: undefined
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.ok(line.hostname, 'hostname is defined')
+    t.ok(line.level, 'level is defined')
+    t.ok(line.msg, 'msg is defined')
+    t.ok(line.pid, 'pid is defined')
+    t.ok(line.req, 'req is defined')
+    t.ok(line.res, 'res is defined')
+    t.ok(line.time, 'time is defined')
+    t.end()
+  })
+})
