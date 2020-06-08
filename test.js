@@ -671,7 +671,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   var customErrorMessage = 'Custom error message'
   var logger = pinoHttp({
     customErrorMessage: function (err, res) {
-      return customErrorMessage
+      return customErrorMessage + ' ' + err.toString()
     }
   }, dest)
 
@@ -681,7 +681,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customErrorMessage)
+    t.contains(line.msg, customErrorMessage)
     t.end()
   })
 })
