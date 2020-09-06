@@ -1,0 +1,24 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [10.x, 12.x, 13.x]
+    name: Node ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Restore cached dependencies
+        uses: actions/cache@v1
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package.json') }}
+      - name: Install dependencies
+        run: npm install
+      - name: Run tests
+        run: npm run ci
