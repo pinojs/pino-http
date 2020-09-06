@@ -1,4 +1,4 @@
-# pino-http&nbsp;&nbsp;[![Build Status](https://travis-ci.org/pinojs/pino-http.svg)](https://travis-ci.org/pinojs/pino-http)[![Coverage Status](https://coveralls.io/repos/github/pinojs/pino-http/badge.svg?branch=master)](https://coveralls.io/github/pinojs/pino-http?branch=master)
+# pino-http&nbsp;&nbsp;[![Build Status](https://img.shields.io/github/workflow/status/pinojs/pino-http/CI)](https://github.com/pinojs/pino-http/actions)
 
 High-speed HTTP logger for Node.js
 
