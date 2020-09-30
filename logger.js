@@ -49,6 +49,7 @@ function pinoLogger (opts, stream) {
   var autoLogging = (opts.autoLogging !== false)
   var autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
   var autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
+  var autoLoggingStatusCodeThreshold = opts.autoLogging && opts.autoLogging.statusCodeThreshold ? opts.autoLogging.statusCodeThreshold : null
   delete opts.autoLogging
 
   var successMessage = opts.customSuccessMessage || function () { return 'request completed' }
@@ -80,7 +81,7 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    if (this.shouldLogSuccess) {
+    if (this.shouldLogSuccess || (autoLoggingStatusCodeThreshold && this.statusCode >= autoLoggingStatusCodeThreshold)) {
       log[level]({
         [resKey]: this,
         [responseTimeKey]: responseTime

@@ -333,6 +333,26 @@ test('auto logging with autoLogging set to true and path ignored and error', fun
   })
 })
 
+test('auto logging with autoLogging set to true and path ignored and custom status code threshold', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    autoLogging: {
+      ignorePaths: ['/unknown-url'],
+      statusCodeThreshold: 400
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, '/unknown-url', function () {
+      var line = dest.read()
+      t.equal(line.msg, 'request completed')
+      t.equal(line.res.statusCode, 404)
+      t.end()
+    })
+  })
+})
+
 test('auto logging with autoLogging set to true and path not ignored', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
