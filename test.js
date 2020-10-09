@@ -674,9 +674,8 @@ test('uses the custom successMessage callback if passed in as an option', functi
   var dest = split(JSON.parse)
   var customResponseMessage = 'Custom response message'
   var logger = pinoHttp({
-    customSuccessMessage: function (res, err) {
-      var optionalErrorMessage = err ? err.toString() : 'error is undefined'
-      return customResponseMessage + ' ' + optionalErrorMessage
+    customSuccessMessage: function (res) {
+      return customResponseMessage
     }
   }, dest)
 
@@ -686,7 +685,28 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 
   dest.on('data', function (line) {
-    t.contains(line.msg, customResponseMessage)
+    t.equal(line.msg, customResponseMessage)
+    t.end()
+  })
+})
+
+test('custom successMessage has optional error parameter', function (t) {
+  var dest = split(JSON.parse)
+  var customErrorMessage = 'Custom response message'
+  var logger = pinoHttp({
+    customSuccessMessage: function (res, err) {
+      var optionalErrorMessage = err ? err.toString() : 'error is undefined'
+      return customErrorMessage + ' ' + optionalErrorMessage
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, '/404')
+  })
+
+  dest.on('data', function (line) {
+    t.contains(line.msg, customErrorMessage)
     t.end()
   })
 })
