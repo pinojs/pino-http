@@ -675,7 +675,8 @@ test('uses the custom successMessage callback if passed in as an option', functi
   var customResponseMessage = 'Custom response message'
   var logger = pinoHttp({
     customSuccessMessage: function (res, err) {
-      return customResponseMessage
+      var optionalErrorMessage = err ? err.toString() : 'error is undefined'
+      return customResponseMessage + ' ' + optionalErrorMessage
     }
   }, dest)
 
@@ -685,7 +686,7 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customResponseMessage)
+    t.contains(line.msg, customResponseMessage)
     t.end()
   })
 })
