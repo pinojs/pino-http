@@ -674,7 +674,7 @@ test('uses the custom successMessage callback if passed in as an option', functi
   var dest = split(JSON.parse)
   var customResponseMessage = 'Custom response message'
   var logger = pinoHttp({
-    customSuccessMessage: function (res) {
+    customSuccessMessage: function (res, err) {
       return customResponseMessage
     }
   }, dest)

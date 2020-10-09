@@ -83,7 +83,7 @@ function pinoLogger (opts, stream) {
     log[level]({
       [resKey]: this,
       [responseTimeKey]: responseTime
-    }, successMessage(this))
+    }, successMessage(this, err || this.err || undefined))
   }
 
   function loggingMiddleware (req, res, next) {
