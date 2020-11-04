@@ -7,6 +7,7 @@ var pino = require('pino')
 var split = require('split2')
 
 var ERROR_URL = '/make-error'
+var WAIT_URL = '/wait'
 var noop = function () {}
 
 function setup (t, logger, cb, handler) {
@@ -14,6 +15,9 @@ function setup (t, logger, cb, handler) {
     logger(req, res)
     if (req.url === '/') {
       res.end('hello world')
+      return
+    } else if (req.url === WAIT_URL) {
+      setTimeout(() => res.end('that was boring'), 300)
       return
     } else if (req.url === ERROR_URL) {
       res.statusCode = 500
@@ -53,9 +57,11 @@ test('default settings', function (t) {
   dest.on('data', function (line) {
     t.ok(line.req, 'req is defined')
     t.ok(line.res, 'res is defined')
+    t.ok(line.finished, 'finish status is defined')
     t.equal(line.msg, 'request completed', 'message is set')
     t.equal(line.req.method, 'GET', 'method is get')
     t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.equal(line.finished, true, 'finished is true')
     t.end()
   })
 })
@@ -280,6 +286,49 @@ test('responseTime for request emitting error event', function (t) {
   dest.on('data', function (line) {
     t.ok(line.responseTime >= 0, 'responseTime is defined')
     t.end()
+  })
+})
+
+// https://github.com/pinojs/pino-http/issues/116
+test('finished for simple request', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    onlyLogFinishedRequest: true
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    var request = doGet(server, WAIT_URL)
+    request.on('error', function (error) {
+      t.equal(error.message, 'socket hang up')
+      setTimeout(() => {
+        var line = dest.read()
+        t.equal(line, null)
+        t.end()
+      }, 100)
+    })
+    request.setTimeout(10, () => request.abort())
+  })
+})
+
+test('finished for aborted request', function (t) {
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({
+    onlyLogFinishedRequest: false
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    var request = doGet(server, WAIT_URL)
+    request.on('error', function (error) {
+      t.equal(error.message, 'socket hang up')
+      setTimeout(() => {
+        var line = dest.read()
+        t.equal(line.finished, false, 'unfinished request is logged and flagged')
+        t.end()
+      }, 100)
+    })
+    request.setTimeout(10, () => request.abort())
   })
 })
 

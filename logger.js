@@ -17,6 +17,7 @@ function pinoLogger (opts, stream) {
   var reqKey = opts.customAttributeKeys.req || 'req'
   var resKey = opts.customAttributeKeys.res || 'res'
   var errKey = opts.customAttributeKeys.err || 'err'
+  var finishedKey = opts.customAttributeKeys.finished || 'finished'
   var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
@@ -51,6 +52,7 @@ function pinoLogger (opts, stream) {
   var autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
   delete opts.autoLogging
 
+  var onlyLogFinishedRequest = (opts.onlyLogFinishedRequest !== false)
   var successMessage = opts.customSuccessMessage || function () { return 'request completed' }
   var errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
@@ -63,7 +65,7 @@ function pinoLogger (opts, stream) {
 
   function onResFinished (err) {
     this.removeListener('error', onResFinished)
-    this.removeListener('finish', onResFinished)
+    this.removeListener('close', onResFinished)
 
     var log = this.log
     var responseTime = Date.now() - this[startTime]
@@ -80,9 +82,14 @@ function pinoLogger (opts, stream) {
       return
     }
 
+    if (onlyLogFinishedRequest && !this.writableEnded) {
+      return
+    }
+
     log[level]({
       [resKey]: this,
-      [responseTimeKey]: responseTime
+      [responseTimeKey]: responseTime,
+      [finishedKey]: this.writableEnded
     }, successMessage(this))
   }
 
@@ -121,7 +128,7 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
-        res.on('finish', onResFinished)
+        res.on('close', onResFinished)
       }
 
       res.on('error', onResFinished)
