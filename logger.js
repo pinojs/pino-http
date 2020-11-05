@@ -65,15 +65,20 @@ function pinoLogger (opts, stream) {
 
   function onResFinished (err) {
     this.removeListener('error', onResFinished)
+<<<<<<< Updated upstream
+=======
+    this.removeListener('finish', onResFinished)
+>>>>>>> Stashed changes
     this.removeListener('close', onResFinished)
 
     var log = this.log
+    var requestLogged = !!this.requestLogged
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
-
+      requestLogged = true
       log[level]({
         [resKey]: this,
         [errKey]: error,
@@ -86,6 +91,14 @@ function pinoLogger (opts, stream) {
       return
     }
 
+<<<<<<< Updated upstream
+=======
+    if (requestLogged) {
+      return
+    }
+
+    requestLogged = true
+>>>>>>> Stashed changes
     log[level]({
       [resKey]: this,
       [responseTimeKey]: responseTime,
@@ -128,6 +141,7 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
+        res.on('finish', onResFinished)
         res.on('close', onResFinished)
       }
 
