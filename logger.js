@@ -94,7 +94,7 @@ function pinoLogger (opts, stream) {
     var log = logger.child({ [reqKey]: req })
 
     if (reqCustomProps) {
-      var customPropBindings = (typeof reqCustomProps === 'function') ? reqCustomProps(req) : reqCustomProps
+      var customPropBindings = (typeof reqCustomProps === 'function') ? reqCustomProps(req, res) : reqCustomProps
       log = log.child(customPropBindings)
     }
     req.log = res.log = log

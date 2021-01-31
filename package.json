@@ -18,9 +18,10 @@
     "tap": "^14.0.0"
   },
   "scripts": {
-    "benchmark": "./scripts/benchmark-all",
+    "benchmark": "bash ./scripts/benchmark-all",
     "test": "standard && tap --no-cov test.js",
-    "ci": "standard && tap --cov test.js"
+    "ci": "standard && tap --cov test.js",
+    "fix": "standard --fix"
   },
   "author": "David Mark Clements",
   "contributors": [

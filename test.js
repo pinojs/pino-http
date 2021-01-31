@@ -761,8 +761,8 @@ test('uses custom log object attribute keys when provided, error request', funct
 
 test('uses custom request properties to log additional attributes when provided', function (t) {
   var dest = split(JSON.parse)
-  function customPropsHandler (req) {
-    if (req) {
+  function customPropsHandler (req, res) {
+    if (req && res) {
       return {
         key1: 'value1',
         key2: 'value2'
