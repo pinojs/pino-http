@@ -20,7 +20,7 @@ function pinoLogger (opts, stream) {
   var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
-  var customProps = opts.customProps || {}
+  var customProps = opts.customProps || opts.reqCustomProps || {}
 
   opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
   if (opts.wrapSerializers) {
