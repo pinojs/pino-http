@@ -770,6 +770,32 @@ test('uses custom request properties to log additional attributes when provided'
     }
   }
   var logger = pinoHttp({
+    customProps: customPropsHandler
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.key1, 'value1')
+    t.equal(line.key2, 'value2')
+    t.end()
+  })
+})
+
+test('uses old custom request properties interface to log additional attributes', function (t) {
+  var dest = split(JSON.parse)
+  function customPropsHandler (req, res) {
+    if (req && res) {
+      return {
+        key1: 'value1',
+        key2: 'value2'
+      }
+    }
+  }
+  var logger = pinoHttp({
     reqCustomProps: customPropsHandler
   }, dest)
 
@@ -788,7 +814,7 @@ test('uses custom request properties to log additional attributes when provided'
 test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
-    reqCustomProps: { key1: 'value1' }
+    customProps: { key1: 'value1' }
   }, dest)
 
   setup(t, logger, function (err, server) {
@@ -805,7 +831,7 @@ test('uses custom request properties to log additional attributes; custom props 
 test('dont pass custom request properties to log additional attributes', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
-    reqCustomProps: undefined
+    customProps: undefined
   }, dest)
 
   setup(t, logger, function (err, server) {
