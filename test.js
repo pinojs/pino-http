@@ -289,48 +289,63 @@ test('responseTime for request emitting error event', function (t) {
   })
 })
 
-// https://github.com/pinojs/pino-http/issues/116
-test('finished for simple request', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
-    onlyLogFinishedRequest: true
-  }, dest)
-
-  setup(t, logger, function (err, server) {
-    t.error(err)
-    var request = doGet(server, WAIT_URL)
-    request.on('error', function (error) {
-      t.equal(error.message, 'socket hang up')
-      setTimeout(() => {
-        var line = dest.read()
-        t.equal(line, null)
-        t.end()
-      }, 100)
-    })
-    request.setTimeout(10, () => request.abort())
+if (process.stdout.writableEnded === undefined) {
+  // CI: This only runs on Node 10
+  test("throw error if 'onlyLogFinishedRequests': false and Node.js doesn't have writableEnded", function (t) {
+    var dest = split(JSON.parse)
+    var throwFunction = function () {
+      pinoHttp({
+        onlyLogFinishedRequest: false
+      }, dest)
+    }
+    t.throws(throwFunction, { message: "'onlyLogFinishedRequest': false requires Node v12.9.0 or later" })
+    t.end()
   })
-})
+} else {
+  // CI: Do not run this test on versions of Node that don't support it
+  // https://github.com/pinojs/pino-http/issues/116
+  test('finished for simple request', function (t) {
+    var dest = split(JSON.parse)
+    var logger = pinoHttp({
+      onlyLogFinishedRequest: true
+    }, dest)
 
-test('finished for aborted request', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
-    onlyLogFinishedRequest: false
-  }, dest)
-
-  setup(t, logger, function (err, server) {
-    t.error(err)
-    var request = doGet(server, WAIT_URL)
-    request.on('error', function (error) {
-      t.equal(error.message, 'socket hang up')
-      setTimeout(() => {
-        var line = dest.read()
-        t.equal(line.finished, false, 'unfinished request is logged and flagged')
-        t.end()
-      }, 100)
+    setup(t, logger, function (err, server) {
+      t.error(err)
+      var request = doGet(server, WAIT_URL)
+      request.on('error', function (error) {
+        t.equal(error.message, 'socket hang up')
+        setTimeout(() => {
+          var line = dest.read()
+          t.equal(line, null)
+          t.end()
+        }, 100)
+      })
+      request.setTimeout(10, () => request.abort())
     })
-    request.setTimeout(10, () => request.abort())
   })
-})
+
+  test('finished for aborted request', function (t) {
+    var dest = split(JSON.parse)
+    var logger = pinoHttp({
+      onlyLogFinishedRequest: false
+    }, dest)
+
+    setup(t, logger, function (err, server) {
+      t.error(err)
+      var request = doGet(server, WAIT_URL)
+      request.on('error', function (error) {
+        t.equal(error.message, 'socket hang up')
+        setTimeout(() => {
+          var line = dest.read()
+          t.equal(line.finished, false, 'unfinished request is logged and flagged')
+          t.end()
+        }, 100)
+      })
+      request.setTimeout(10, () => request.abort())
+    })
+  })
+}
 
 test('no auto logging with autoLogging set to false', function (t) {
   var dest = split(JSON.parse)
