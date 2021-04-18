@@ -93,7 +93,7 @@ $ node example.js | pino-pretty
 
 `opts`: it has all the options as [pino](http://npm.im/pino) and
 
-* `logger`: `pino-http` can reuse a pino instance if passed with the `logger` property
+* `logger`: parent pino instance for a child logger instance, which will be used by `pino-http`. To refer to this child instance, use [pinoHttp.logger](#pinohttplogger-plogger)
 * `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
 * `customLogLevel`: set to a `function (res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued. This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
@@ -186,6 +186,18 @@ function handle (req, res) {
 }
 
 server.listen(3000)
+```
+
+##### PinoHttp.logger (P.Logger)
+
+The `pinoHttp` instance has a property `logger`, which references to an actual logger instance, used
+by pinoHttp. This instance will be a child of an instance, passed as `opts.logger`, or a fresh one,
+if no `opts.logger` is passed. It can be used, for example, for doing most of the things, possible 
+to do with any `pino` instance, for example changing logging level in runtime, like so:
+
+```js
+var pinoHttp = require('pinoHttp')();
+pinoHttp.logger.level = 'silent';
 ```
 
 ##### pinoHttp.startTime (Symbol)
