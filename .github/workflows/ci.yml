@@ -1,11 +1,21 @@
 name: CI
-on: [push, pull_request]
+
+on:
+  push:
+    paths-ignore:
+        - 'docs/**'
+        - '*.md'
+  pull_request:
+    paths-ignore:
+        - 'docs/**'
+        - '*.md'
+
 jobs:
-  run-test:
+  build:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [10.x, 12.x, 13.x, 14.x, 16.x]
+        node: [10, 12, 13, 14, 16]
     name: Node ${{ matrix.node }}
     steps:
       - uses: actions/checkout@v2
@@ -22,3 +32,11 @@ jobs:
         run: npm install
       - name: Run tests
         run: npm run ci
+
+  automerge:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v2.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
