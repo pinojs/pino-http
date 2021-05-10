@@ -15,7 +15,7 @@
     "pre-commit": "^1.1.2",
     "split2": "^3.0.0",
     "standard": "^16.0.3",
-    "tap": "^14.0.0"
+    "tap": "^15.0.9"
   },
   "scripts": {
     "benchmark": "bash ./scripts/benchmark-all",
