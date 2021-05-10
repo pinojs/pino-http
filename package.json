@@ -9,7 +9,7 @@
     "pino-std-serializers": "^3.2.0"
   },
   "devDependencies": {
-    "autocannon": "^4.0.0",
+    "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",
     "pre-commit": "^1.1.2",
