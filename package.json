@@ -19,8 +19,7 @@
   },
   "scripts": {
     "benchmark": "bash ./scripts/benchmark-all",
-    "test": "standard && tap --no-cov test.js",
-    "ci": "standard && tap --cov test.js",
+    "test": "standard && tap test.js",
     "fix": "standard --fix"
   },
   "author": "David Mark Clements",

@@ -93,10 +93,8 @@ function pinoLogger (opts, stream) {
 
     var log = logger.child({ [reqKey]: req })
 
-    if (customProps) {
-      var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-      log = log.child(customPropBindings)
-    }
+    var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
+    log = log.child(customPropBindings)
     req.log = res.log = log
 
     res[startTime] = res[startTime] || Date.now()
@@ -106,18 +104,17 @@ function pinoLogger (opts, stream) {
         var url
         if (autoLoggingGetPath) {
           url = URL.parse(autoLoggingGetPath(req))
-        } else if (req.url) {
+        } else {
           url = URL.parse(req.url)
         }
-        if (url && url.pathname) {
-          shouldLogSuccess = !autoLoggingIgnorePaths.find(ignorePath => {
-            if (ignorePath instanceof RegExp) {
-              return ignorePath.test(url.pathname)
-            }
 
-            return ignorePath === url.pathname
-          })
-        }
+        shouldLogSuccess = !autoLoggingIgnorePaths.find(ignorePath => {
+          if (ignorePath instanceof RegExp) {
+            return ignorePath.test(url.pathname)
+          }
+
+          return ignorePath === url.pathname
+        })
       }
 
       if (shouldLogSuccess) {

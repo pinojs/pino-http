@@ -9,9 +9,9 @@ var split = require('split2')
 var ERROR_URL = '/make-error'
 var noop = function () {}
 
-function setup (t, logger, cb, handler) {
+function setup (t, logger, cb, handler, next) {
   var server = http.createServer(handler || function (req, res) {
-    logger(req, res)
+    logger(req, res, next)
     if (req.url === '/') {
       res.end('hello world')
       return
@@ -848,5 +848,24 @@ test('dont pass custom request properties to log additional attributes', functio
     t.ok(line.res, 'res is defined')
     t.ok(line.time, 'time is defined')
     t.end()
+  })
+})
+
+test('auto logging and next callback', function (t) {
+  t.plan(3)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ autoLogging: true }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, null, function () {
+      var line = dest.read()
+      t.equal(line.msg, 'request completed')
+    })
+  }, function (req, res) {
+    logger(req, res, function () {
+      t.pass('called')
+      res.end('hello world')
+    })
   })
 })
