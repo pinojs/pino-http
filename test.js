@@ -27,7 +27,7 @@ function setup (t, logger, cb, handler) {
   server.listen(0, '127.0.0.1', function (err) {
     cb(err || null, server)
   })
-  t.tearDown(function (cb) {
+  t.teardown(function (cb) {
     server.close(cb)
   })
 
@@ -156,7 +156,7 @@ test('allocate a unique id to every request', function (t) {
   })
 
   dest.on('data', function (line) {
-    t.notEqual(line.req.id, lastId)
+    t.not(line.req.id, lastId)
     lastId = line.req.id
     t.ok(line.req.id, 'req.id is defined')
   })
@@ -501,7 +501,7 @@ test('does not return excessively long object', function (t) {
   }
 
   dest.on('data', function (obj) {
-    t.is(Object.keys(obj.req).length, 6)
+    t.equal(Object.keys(obj.req).length, 6)
   })
 })
 
@@ -588,7 +588,7 @@ test('res.raw is not enumerable', function (t) {
     logger: pino(dest),
     serializers: {
       res: function (res) {
-        t.is(Object.prototype.propertyIsEnumerable.call(res, 'raw'), false)
+        t.equal(Object.prototype.propertyIsEnumerable.call(res, 'raw'), false)
         return res
       }
     }
@@ -652,7 +652,7 @@ test('req.id has a non-function value', function (t) {
     logger: pino(dest),
     serializers: {
       req: function (req) {
-        t.is(typeof req.id === 'function', false)
+        t.equal(typeof req.id === 'function', false)
         return req
       }
     }
@@ -705,7 +705,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   })
 
   dest.on('data', function (line) {
-    t.contains(line.msg, customErrorMessage)
+    t.equal(line.msg.indexOf(customErrorMessage), 0)
     t.end()
   })
 })
