@@ -141,7 +141,7 @@ function wrapChild (opts, stream) {
   if (prevLogger) {
     opts.logger = undefined
     opts.genReqId = undefined
-    logger = prevLogger.child(opts)
+    logger = prevLogger.child({}, opts)
     opts.logger = prevLogger
     opts.genReqId = prevGenReqId
   } else {
