@@ -401,6 +401,34 @@ test('no auto logging with autoLogging set to use regular expressions. result is
   })
 })
 
+test('no auto logging with autoLogging set to true and ignoring a specific user-agent', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    autoLogging: {
+      ignore: function (req) {
+        return req.headers['user-agent'] === 'ELB-HealthChecker/2.0'
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+
+    const { address, port } = server.address()
+    http.get({
+      protocol: 'http:',
+      hostname: address,
+      port,
+      path: '/',
+      headers: { 'User-Agent': 'ELB-HealthChecker/2.0' }
+    }, function () {
+      const line = dest.read()
+      t.equal(line, null)
+      t.end()
+    })
+  })
+})
+
 test('support a custom instance', function (t) {
   var dest = split(JSON.parse)
   var logger = pinoHttp({
