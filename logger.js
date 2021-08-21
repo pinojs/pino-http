@@ -47,6 +47,7 @@ function pinoLogger (opts, stream) {
   delete opts.stream
 
   var autoLogging = (opts.autoLogging !== false)
+  var autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   var autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
   var autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
   delete opts.autoLogging
@@ -108,13 +109,20 @@ function pinoLogger (opts, stream) {
           url = URL.parse(req.url)
         }
 
-        shouldLogSuccess = !autoLoggingIgnorePaths.find(ignorePath => {
+        const isPathIgnored = autoLoggingIgnorePaths.find(ignorePath => {
           if (ignorePath instanceof RegExp) {
             return ignorePath.test(url.pathname)
           }
 
           return ignorePath === url.pathname
         })
+
+        shouldLogSuccess = !isPathIgnored
+      }
+
+      if (autoLoggingIgnore !== null && shouldLogSuccess === true) {
+        const isIgnored = autoLoggingIgnore !== null && autoLoggingIgnore(req)
+        shouldLogSuccess = !isIgnored
       }
 
       if (shouldLogSuccess) {
