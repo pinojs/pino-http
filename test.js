@@ -897,3 +897,61 @@ test('auto logging and next callback', function (t) {
     })
   })
 })
+
+test('quiet request logging', function (t) {
+  t.plan(8)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ quietReqLogger: true }, dest)
+
+  function handler (req, res) {
+    t.pass('called')
+    req.id = 'testId'
+    logger(req, res)
+    req.log.info('quiet message')
+    res.end('hello world')
+  }
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, null, function () {
+      var quietLine = dest.read()
+      t.equal(quietLine.msg, 'quiet message')
+      t.equal(quietLine.reqId, 'testId')
+      t.notOk(quietLine.req)
+
+      var responseLine = dest.read()
+      t.equal(responseLine.msg, 'request completed')
+      t.equal(responseLine.reqId, 'testId')
+      t.ok(responseLine.req)
+    })
+  }, handler)
+})
+
+test('quiet request logging - custom request id key', function (t) {
+  t.plan(8)
+  var dest = split(JSON.parse)
+  var logger = pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'customRequestId' } }, dest)
+
+  function handler (req, res) {
+    t.pass('called')
+    req.id = 'testId'
+    logger(req, res)
+    req.log.info('quiet message')
+    res.end('hello world')
+  }
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, null, function () {
+      var quietLine = dest.read()
+      t.equal(quietLine.msg, 'quiet message')
+      t.notOk(quietLine.req)
+      t.equal(quietLine.customRequestId, 'testId')
+
+      var responseLine = dest.read()
+      t.equal(responseLine.msg, 'request completed')
+      t.equal(responseLine.customRequestId, 'testId')
+      t.ok(responseLine.req)
+    })
+  }, handler)
+})

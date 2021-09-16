@@ -17,6 +17,7 @@ function pinoLogger (opts, stream) {
   var reqKey = opts.customAttributeKeys.req || 'req'
   var resKey = opts.customAttributeKeys.res || 'res'
   var errKey = opts.customAttributeKeys.err || 'err'
+  var requestIdKey = opts.customAttributeKeys.reqId || 'reqId'
   var responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
@@ -57,6 +58,8 @@ function pinoLogger (opts, stream) {
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
 
+  var quietReqLogger = !!opts.quietReqLogger
+
   var logger = wrapChild(opts, theStream)
   var genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
@@ -92,11 +95,14 @@ function pinoLogger (opts, stream) {
 
     req.id = genReqId(req)
 
-    var log = logger.child({ [reqKey]: req })
+    var log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
+    var fullReqLogger = log.child({ [reqKey]: req })
     var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    log = log.child(customPropBindings)
-    req.log = res.log = log
+    fullReqLogger = fullReqLogger.child(customPropBindings)
+
+    res.log = fullReqLogger
+    req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
 
