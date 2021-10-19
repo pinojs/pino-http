@@ -51,6 +51,7 @@ function pinoLogger (opts, stream) {
   var autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   var autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
   var autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
+  var autoLoggingStatusCodeThreshold = opts.autoLogging && opts.autoLogging.statusCodeThreshold ? opts.autoLogging.statusCodeThreshold : null
   delete opts.autoLogging
 
   var successMessage = opts.customSuccessMessage || function () { return 'request completed' }
@@ -84,15 +85,16 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    log[level]({
-      [resKey]: this,
-      [responseTimeKey]: responseTime
-    }, successMessage(this))
+    if (this.shouldLogSuccess || (autoLoggingStatusCodeThreshold && this.statusCode >= autoLoggingStatusCodeThreshold)) {
+      log[level]({
+        [resKey]: this,
+        [responseTimeKey]: responseTime
+      }, successMessage(this))
+    }
   }
 
   function loggingMiddleware (req, res, next) {
     var shouldLogSuccess = true
-
     req.id = genReqId(req)
 
     var log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
@@ -131,10 +133,8 @@ function pinoLogger (opts, stream) {
         shouldLogSuccess = !isIgnored
       }
 
-      if (shouldLogSuccess) {
-        res.on('finish', onResFinished)
-      }
-
+      res.shouldLogSuccess = shouldLogSuccess
+      res.on('finish', onResFinished)
       res.on('error', onResFinished)
     }
 
