@@ -69,7 +69,7 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
-    var log = this.log
+    var { log, customPropsFunc } = this.log
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
 
@@ -77,14 +77,16 @@ function pinoLogger (opts, stream) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
       log[level]({
+        ... customPropsFunc(this),
         [resKey]: this,
         [errKey]: error,
-        [responseTimeKey]: responseTime
+        [responseTimeKey]: responseTime,
       }, errorMessage(error, this))
       return
     }
 
     log[level]({
+      ... customPropsFunc(this),
       [resKey]: this,
       [responseTimeKey]: responseTime
     }, successMessage(this))
@@ -98,10 +100,8 @@ function pinoLogger (opts, stream) {
     var log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
     var fullReqLogger = log.child({ [reqKey]: req })
-    var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    fullReqLogger = fullReqLogger.child(customPropBindings)
 
-    res.log = fullReqLogger
+    res.log = { log: fullReqLogger, customPropsFunc : customPropsFactory(customProps)(req)} 
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
@@ -169,6 +169,10 @@ function reqIdGenFactory (func) {
   return function genReqId (req) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
+}
+
+function customPropsFactory(func) {
+  return (req) => ((res) => (typeof func !== 'function') ? func : func(req,res))
 }
 
 module.exports = pinoLogger
