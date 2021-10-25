@@ -5,6 +5,7 @@ const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
+var reqObject = Symbol('reqObject')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -86,7 +87,7 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
-    const { log, customPropsFunc } = this.log
+    const log = this.log
     const responseTime = Date.now() - this[startTime]
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
@@ -94,11 +95,12 @@ function pinoLogger (opts, stream) {
       return
     }
 
+    log = (typeof customProps === 'function') ? log.child(customProps(this[reqObject], this)) : log.child(customProps)
+
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
       log[level]({
-        ... customPropsFunc(this),
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime,
@@ -107,7 +109,6 @@ function pinoLogger (opts, stream) {
     }
 
     log[level]({
-      ... customPropsFunc(this),
       [resKey]: this,
       [responseTimeKey]: responseTime
     }, successMessage(this))
@@ -130,6 +131,8 @@ function pinoLogger (opts, stream) {
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
+    //carry request to be executed when response is finished
+    res[reqObject] = req
 
     if (autoLogging) {
       if (autoLoggingIgnorePaths.length) {
@@ -203,10 +206,6 @@ function reqIdGenFactory (func) {
   return function genReqId (req) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
-}
-
-function customPropsFactory(func) {
-  return (req) => ((res) => (typeof func !== 'function') ? func : func(req,res))
 }
 
 module.exports = pinoLogger
