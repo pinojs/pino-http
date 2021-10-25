@@ -74,7 +74,11 @@ function pinoLogger (opts, stream) {
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
 
-    log = (typeof customProps === 'function') ? log.child(customProps(this[reqObject], this)) : log.child(customProps)
+    var req = this.log[reqObject]
+    var res = this
+
+    var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
+    log = log.child(customPropBindings)
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
