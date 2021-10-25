@@ -4,6 +4,7 @@ var pino = require('pino')
 var serializers = require('pino-std-serializers')
 var URL = require('fast-url-parser')
 var startTime = Symbol('startTime')
+var reqObject = Symbol('reqObject')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -69,15 +70,16 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
-    var { log, customPropsFunc } = this.log
+    var log = this.log
     var responseTime = Date.now() - this[startTime]
     var level = customLogLevel ? customLogLevel(this, err) : useLevel
+
+    log = (typeof customProps === 'function') ? log.child(customProps(this[reqObject], this)) : log.child(customProps)
 
     if (err || this.err || this.statusCode >= 500) {
       var error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
       log[level]({
-        ... customPropsFunc(this),
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime,
@@ -86,7 +88,6 @@ function pinoLogger (opts, stream) {
     }
 
     log[level]({
-      ... customPropsFunc(this),
       [resKey]: this,
       [responseTimeKey]: responseTime
     }, successMessage(this))
@@ -100,11 +101,12 @@ function pinoLogger (opts, stream) {
     var log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
     var fullReqLogger = log.child({ [reqKey]: req })
-
-    res.log = { log: fullReqLogger, customPropsFunc : customPropsFactory(customProps)(req)} 
+    res.log = fullReqLogger
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
+    //carry request to be executed when response is finished
+    res[reqObject] = req
 
     if (autoLogging) {
       if (autoLoggingIgnorePaths.length) {
@@ -169,10 +171,6 @@ function reqIdGenFactory (func) {
   return function genReqId (req) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
-}
-
-function customPropsFactory(func) {
-  return (req) => ((res) => (typeof func !== 'function') ? func : func(req,res))
 }
 
 module.exports = pinoLogger
