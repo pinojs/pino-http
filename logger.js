@@ -135,7 +135,7 @@ function pinoLogger (opts, stream) {
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
-    //carry request to be executed when response is finished
+    // carry request to be executed when response is finished
     res[reqObject] = req
 
     if (autoLogging) {
