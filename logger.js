@@ -2,6 +2,7 @@
 
 const pino = require('pino')
 const serializers = require('pino-std-serializers')
+const getCallerFile = require('get-caller-file')
 const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
 
@@ -156,6 +157,10 @@ function wrapChild (opts, stream) {
     opts.logger = prevLogger
     opts.genReqId = prevGenReqId
   } else {
+    if (opts.transport && !opts.transport.caller) {
+      opts.transport.caller = getCallerFile()
+    }
+
     logger = pino(opts, stream)
   }
 

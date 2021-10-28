@@ -5,6 +5,7 @@ const http = require('http')
 const pinoHttp = require('./')
 const pino = require('pino')
 const split = require('split2')
+const { join } = require('path')
 
 const ERROR_URL = '/make-error'
 const noop = function () {}
@@ -77,6 +78,22 @@ test('stream in options', function (t) {
     t.equal(line.res.statusCode, 200, 'statusCode is 200')
     t.end()
   })
+})
+
+test('add transport.caller information when missing', function (t) {
+  t.plan(1)
+
+  const options = {
+    transport: {
+      targets: [
+        { target: 'pino/file', options: { destination: '/dev/null' } }
+      ]
+    }
+  }
+
+  const logger = pinoHttp(options)
+  logger.logger.info('hello world')
+  t.equal(options.transport.caller, join(__dirname, 'logger.js'), 'caller is set')
 })
 
 test('exposes the internal pino', function (t) {
