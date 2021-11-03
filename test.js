@@ -1,16 +1,17 @@
 'use strict'
 
-var test = require('tap').test
-var http = require('http')
-var pinoHttp = require('./')
-var pino = require('pino')
-var split = require('split2')
+const test = require('tap').test
+const http = require('http')
+const pinoHttp = require('./')
+const pino = require('pino')
+const split = require('split2')
+const { join } = require('path')
 
-var ERROR_URL = '/make-error'
-var noop = function () {}
+const ERROR_URL = '/make-error'
+const noop = function () {}
 
 function setup (t, logger, cb, handler, next) {
-  var server = http.createServer(handler || function (req, res) {
+  const server = http.createServer(handler || function (req, res) {
     logger(req, res, next)
     if (req.url === '/') {
       res.end('hello world')
@@ -36,14 +37,14 @@ function setup (t, logger, cb, handler, next) {
 
 function doGet (server, path, callback) {
   path = path || '/'
-  var address = server.address()
-  var cb = callback || noop
+  const address = server.address()
+  const cb = callback || noop
   return http.get('http://' + address.address + ':' + address.port + path, cb)
 }
 
 test('default settings', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -61,8 +62,8 @@ test('default settings', function (t) {
 })
 
 test('stream in options', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ stream: dest })
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ stream: dest })
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -79,11 +80,27 @@ test('stream in options', function (t) {
   })
 })
 
+test('add transport.caller information when missing', function (t) {
+  t.plan(1)
+
+  const options = {
+    transport: {
+      targets: [
+        { target: 'pino/file', options: { destination: '/dev/null' } }
+      ]
+    }
+  }
+
+  const logger = pinoHttp(options)
+  logger.logger.info('hello world')
+  t.equal(options.transport.caller, join(__dirname, 'logger.js'), 'caller is set')
+})
+
 test('exposes the internal pino', function (t) {
   t.plan(1)
 
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
 
   dest.on('data', function (line) {
     t.equal(line.msg, 'hello world')
@@ -93,8 +110,8 @@ test('exposes the internal pino', function (t) {
 })
 
 test('uses the log level passed in as an option', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -109,8 +126,8 @@ test('uses the log level passed in as an option', function (t) {
 })
 
 test('uses the custom log level passed in as an option', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     customLogLevel: function (res, err) {
       return 'warn'
     }
@@ -129,8 +146,8 @@ test('uses the custom log level passed in as an option', function (t) {
 })
 
 test('throw error if custom log level and log level passed in together', function (t) {
-  var dest = split(JSON.parse)
-  var throwFunction = function () {
+  const dest = split(JSON.parse)
+  const throwFunction = function () {
     pinoHttp({
       useLevel: 'info',
       customLogLevel: function (res, err) {
@@ -145,9 +162,9 @@ test('throw error if custom log level and log level passed in together', functio
 test('allocate a unique id to every request', function (t) {
   t.plan(5)
 
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
-  var lastId = null
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+  let lastId = null
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -165,15 +182,15 @@ test('allocate a unique id to every request', function (t) {
 test('uses a custom genReqId function', function (t) {
   t.plan(4)
 
-  var dest = split(JSON.parse)
-  var idToTest
+  const dest = split(JSON.parse)
+  let idToTest
   function genReqId (req) {
     t.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest
   }
 
-  var logger = pinoHttp({ genReqId: genReqId }, dest)
+  const logger = pinoHttp({ genReqId: genReqId }, dest)
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server)
@@ -188,9 +205,9 @@ test('uses a custom genReqId function', function (t) {
 test('reuses existing req.id if present', function (t) {
   t.plan(2)
 
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
-  var someId = 'id-to-reuse-12345'
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+  const someId = 'id-to-reuse-12345'
 
   function loggerWithExistingReqId (req, res) {
     req.id = someId
@@ -208,9 +225,9 @@ test('reuses existing req.id if present', function (t) {
 })
 
 test('startTime', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
-  var someStartTime = 56
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+  const someStartTime = 56
 
   t.equal(typeof pinoHttp.startTime, 'symbol')
 
@@ -232,8 +249,8 @@ test('startTime', function (t) {
 })
 
 test('responseTime', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -247,8 +264,8 @@ test('responseTime', function (t) {
 })
 
 test('responseTime for errored request', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -263,8 +280,8 @@ test('responseTime for errored request', function (t) {
 })
 
 test('responseTime for request emitting error event', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp(dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
 
   function handle (req, res) {
     logger(req, res)
@@ -284,13 +301,13 @@ test('responseTime for request emitting error event', function (t) {
 })
 
 test('no auto logging with autoLogging set to false', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ autoLogging: false }, dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ autoLogging: false }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      var line = dest.read()
+      const line = dest.read()
       t.equal(line, null)
       t.end()
     })
@@ -298,8 +315,8 @@ test('no auto logging with autoLogging set to false', function (t) {
 })
 
 test('no auto logging with autoLogging set to true and path ignored', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     autoLogging: {
       ignorePaths: ['/ignorethis']
     }
@@ -308,7 +325,7 @@ test('no auto logging with autoLogging set to true and path ignored', function (
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, '/ignorethis', function () {
-      var line = dest.read()
+      const line = dest.read()
       t.equal(line, null)
       t.end()
     })
@@ -316,8 +333,8 @@ test('no auto logging with autoLogging set to true and path ignored', function (
 })
 
 test('auto logging with autoLogging set to true and path not ignored', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     autoLogging: {
       ignorePaths: ['/ignorethis']
     }
@@ -335,8 +352,8 @@ test('auto logging with autoLogging set to true and path not ignored', function 
 })
 
 test('no auto logging with autoLogging set to true and getPath result is ignored', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     autoLogging: {
       ignorePaths: ['/ignorethis'],
       getPath: function (req) {
@@ -348,7 +365,7 @@ test('no auto logging with autoLogging set to true and getPath result is ignored
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, '/ignorethis', function () {
-      var line = dest.read()
+      const line = dest.read()
       t.equal(line, null)
       t.end()
     })
@@ -356,8 +373,8 @@ test('no auto logging with autoLogging set to true and getPath result is ignored
 })
 
 test('auto logging with autoLogging set to true and getPath result is not ignored', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     autoLogging: {
       ignorePaths: ['/ignorethis'],
       getPath: function (req) {
@@ -378,8 +395,8 @@ test('auto logging with autoLogging set to true and getPath result is not ignore
 })
 
 test('no auto logging with autoLogging set to use regular expressions. result is ignored', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     autoLogging: {
       ignorePaths: [/\/[A-z]{4}\/ignorethis/, '/another-ignored-path'],
       getPath: function (req) {
@@ -430,8 +447,8 @@ test('no auto logging with autoLogging set to true and ignoring a specific user-
 })
 
 test('support a custom instance', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest)
   })
 
@@ -451,16 +468,16 @@ test('support a custom instance', function (t) {
 })
 
 test('support a custom instance with custom genReqId function', function (t) {
-  var dest = split(JSON.parse)
+  const dest = split(JSON.parse)
 
-  var idToTest
+  let idToTest
   function genReqId (req) {
     t.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest
   }
 
-  var logger = pinoHttp({
+  const logger = pinoHttp({
     logger: pino(dest),
     genReqId: genReqId
   })
@@ -482,13 +499,13 @@ test('support a custom instance with custom genReqId function', function (t) {
 })
 
 test('does not crash when no request connection object', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest)
   })
   t.plan(1)
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(9999, () => {
     http.get('http://127.0.0.1:9999', (res) => {
@@ -505,8 +522,8 @@ test('does not crash when no request connection object', function (t) {
 
 // https://github.com/pinojs/pino-http/issues/42
 test('does not return excessively long object', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       req: function (req) {
@@ -517,7 +534,7 @@ test('does not return excessively long object', function (t) {
   })
   t.plan(1)
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
     http.get(server.address(), () => {})
@@ -559,8 +576,8 @@ test('err.raw is available to custom serializers', function (t) {
 
 test('req.raw is available to custom serializers', function (t) {
   t.plan(2)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       req: function (req) {
@@ -571,7 +588,7 @@ test('req.raw is available to custom serializers', function (t) {
     }
   })
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
     http.get(server.address(), () => {})
@@ -585,8 +602,8 @@ test('req.raw is available to custom serializers', function (t) {
 
 test('res.raw is available to custom serializers', function (t) {
   t.plan(2)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       res: function (res) {
@@ -597,7 +614,7 @@ test('res.raw is available to custom serializers', function (t) {
     }
   })
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
     http.get(server.address(), () => {})
@@ -611,8 +628,8 @@ test('res.raw is available to custom serializers', function (t) {
 
 test('res.raw is not enumerable', function (t) {
   t.plan(1)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       res: function (res) {
@@ -622,7 +639,7 @@ test('res.raw is not enumerable', function (t) {
     }
   })
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
     http.get(server.address(), () => {})
@@ -675,8 +692,8 @@ test('err.raw, req.raw and res.raw are passed into custom serializers directly, 
 
 test('req.id has a non-function value', function (t) {
   t.plan(1)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       req: function (req) {
@@ -686,7 +703,7 @@ test('req.id has a non-function value', function (t) {
     }
   })
 
-  var server = http.createServer(handler)
+  const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
     http.get(server.address(), () => {})
@@ -699,9 +716,9 @@ test('req.id has a non-function value', function (t) {
 })
 
 test('uses the custom successMessage callback if passed in as an option', function (t) {
-  var dest = split(JSON.parse)
-  var customResponseMessage = 'Custom response message'
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const customResponseMessage = 'Custom response message'
+  const logger = pinoHttp({
     customSuccessMessage: function (res) {
       return customResponseMessage
     }
@@ -719,9 +736,9 @@ test('uses the custom successMessage callback if passed in as an option', functi
 })
 
 test('uses the custom errorMessage callback if passed in as an option', function (t) {
-  var dest = split(JSON.parse)
-  var customErrorMessage = 'Custom error message'
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const customErrorMessage = 'Custom error message'
+  const logger = pinoHttp({
     customErrorMessage: function (err, res) {
       return customErrorMessage + ' ' + err.toString()
     }
@@ -739,8 +756,8 @@ test('uses the custom errorMessage callback if passed in as an option', function
 })
 
 test('uses custom log object attribute keys when provided, successful request', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     customAttributeKeys: {
       req: 'httpReq',
       res: 'httpRes',
@@ -763,8 +780,8 @@ test('uses custom log object attribute keys when provided, successful request', 
 })
 
 test('uses custom log object attribute keys when provided, error request', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     customAttributeKeys: {
       req: 'httpReq',
       res: 'httpRes',
@@ -788,7 +805,7 @@ test('uses custom log object attribute keys when provided, error request', funct
 })
 
 test('uses custom request properties to log additional attributes when provided', function (t) {
-  var dest = split(JSON.parse)
+  const dest = split(JSON.parse)
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -797,7 +814,7 @@ test('uses custom request properties to log additional attributes when provided'
       }
     }
   }
-  var logger = pinoHttp({
+  const logger = pinoHttp({
     customProps: customPropsHandler
   }, dest)
 
@@ -814,7 +831,7 @@ test('uses custom request properties to log additional attributes when provided'
 })
 
 test('uses old custom request properties interface to log additional attributes', function (t) {
-  var dest = split(JSON.parse)
+  const dest = split(JSON.parse)
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -823,7 +840,7 @@ test('uses old custom request properties interface to log additional attributes'
       }
     }
   }
-  var logger = pinoHttp({
+  const logger = pinoHttp({
     reqCustomProps: customPropsHandler
   }, dest)
 
@@ -840,8 +857,8 @@ test('uses old custom request properties interface to log additional attributes'
 })
 
 test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     customProps: { key1: 'value1' }
   }, dest)
 
@@ -857,8 +874,8 @@ test('uses custom request properties to log additional attributes; custom props 
 })
 
 test('dont pass custom request properties to log additional attributes', function (t) {
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
     customProps: undefined
   }, dest)
 
@@ -881,13 +898,13 @@ test('dont pass custom request properties to log additional attributes', functio
 
 test('auto logging and next callback', function (t) {
   t.plan(3)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ autoLogging: true }, dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ autoLogging: true }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      var line = dest.read()
+      const line = dest.read()
       t.equal(line.msg, 'request completed')
     })
   }, function (req, res) {
@@ -900,8 +917,8 @@ test('auto logging and next callback', function (t) {
 
 test('quiet request logging', function (t) {
   t.plan(8)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ quietReqLogger: true }, dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ quietReqLogger: true }, dest)
 
   function handler (req, res) {
     t.pass('called')
@@ -914,12 +931,12 @@ test('quiet request logging', function (t) {
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      var quietLine = dest.read()
+      const quietLine = dest.read()
       t.equal(quietLine.msg, 'quiet message')
       t.equal(quietLine.reqId, 'testId')
       t.notOk(quietLine.req)
 
-      var responseLine = dest.read()
+      const responseLine = dest.read()
       t.equal(responseLine.msg, 'request completed')
       t.equal(responseLine.reqId, 'testId')
       t.ok(responseLine.req)
@@ -929,8 +946,8 @@ test('quiet request logging', function (t) {
 
 test('quiet request logging - custom request id key', function (t) {
   t.plan(8)
-  var dest = split(JSON.parse)
-  var logger = pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'customRequestId' } }, dest)
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'customRequestId' } }, dest)
 
   function handler (req, res) {
     t.pass('called')
@@ -943,12 +960,12 @@ test('quiet request logging - custom request id key', function (t) {
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      var quietLine = dest.read()
+      const quietLine = dest.read()
       t.equal(quietLine.msg, 'quiet message')
       t.notOk(quietLine.req)
       t.equal(quietLine.customRequestId, 'testId')
 
-      var responseLine = dest.read()
+      const responseLine = dest.read()
       t.equal(responseLine.msg, 'request completed')
       t.equal(responseLine.customRequestId, 'testId')
       t.ok(responseLine.req)

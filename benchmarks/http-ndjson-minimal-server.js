@@ -1,8 +1,8 @@
 'use strict'
 
-var http = require('http')
-var httpNdjson = require('http-ndjson')
-var server = http.createServer(handle)
+const http = require('http')
+const httpNdjson = require('http-ndjson')
+const server = http.createServer(handle)
 
 function handle (req, res) {
   res.end('hello world')
