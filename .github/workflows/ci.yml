@@ -18,9 +18,9 @@ jobs:
         node: [12, 14, 16, 17]
     name: Node ${{ matrix.node }}
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v2
       - name: Setup node
-        uses: actions/setup-node@v2.4.1
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node }}
       - name: Restore cached dependencies
