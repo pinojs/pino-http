@@ -54,6 +54,7 @@ function pinoLogger (opts, stream) {
   const autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
   delete opts.autoLogging
 
+  const receivedMessage = opts.customReceivedMessage || function () { return 'request received' }
   const successMessage = opts.customSuccessMessage || function () { return 'request completed' }
   const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
@@ -133,6 +134,9 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
+        const level = customLogLevel ? customLogLevel(res) : useLevel
+        log[level]({}, receivedMessage(req))
+
         res.on('finish', onResFinished)
       }
 
