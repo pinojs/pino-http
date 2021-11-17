@@ -38,10 +38,10 @@ npm i pino-http --save
 ```js
 'use strict'
 
-var http = require('http')
-var server = http.createServer(handle)
+const http = require('http')
+const server = http.createServer(handle)
 
-var logger = require('pino-http')()
+const logger = require('pino-http')()
 
 function handle (req, res) {
   logger(req, res)
@@ -118,10 +118,10 @@ $ node example.js | pino-pretty
 ```js
 'use strict'
 
-var http = require('http')
-var server = http.createServer(handle)
-var pino = require('pino')
-var logger = require('pino-http')({
+const http = require('http')
+const server = http.createServer(handle)
+const pino = require('pino')
+const logger = require('pino-http')({
   // Reuse an existing logger instance
   logger: pino(),
 
@@ -198,7 +198,7 @@ if no `opts.logger` is passed. It can be used, for example, for doing most of th
 to do with any `pino` instance, for example changing logging level in runtime, like so:
 
 ```js
-var pinoHttp = require('pinoHttp')();
+const pinoHttp = require('pinoHttp')();
 pinoHttp.logger.level = 'silent';
 ```
 
@@ -212,9 +212,9 @@ processing that happens before a response is logged. This can be corrected by ma
 the start time to the `res` object with the `pinoHttp.startTime` symbol, like so:
 
 ```js
-var http = require('http')
-var logger = require('pino-http')()
-var someImportantThingThatHasToBeFirst = require('some-important-thing')
+const http = require('http')
+const logger = require('pino-http')()
+const someImportantThingThatHasToBeFirst = require('some-important-thing')
 http.createServer((req, res) => {
   res[logger.startTime] = Date.now()
   someImportantThingThatHasToBeFirst(req, res)
@@ -285,7 +285,7 @@ by `foo`. In order to show these properties, along with the standard serialized
 properties, in the resulting logs, we can supply a serializer like:
 
 ```js
-var logger = require('pino-http')({
+const logger = require('pino-http')({
   serializers: {
     req (req) {
       Object.keys(req.raw).forEach((k) => {
@@ -304,7 +304,7 @@ serializers already defined by `opts.logger`, you can pass in `opts.wrapSerializ
 as `false`:
 
 ```js
-var logger = require('pino-http')({
+const logger = require('pino-http')({
   wrapSerializers: false,
   serializers: {
     req (req) {

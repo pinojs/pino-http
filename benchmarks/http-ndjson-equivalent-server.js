@@ -1,15 +1,15 @@
 'use strict'
 
-var http = require('http')
-var httpNdjson = require('http-ndjson')
-var server = http.createServer(handle)
+const http = require('http')
+const httpNdjson = require('http-ndjson')
+const server = http.createServer(handle)
 
-var pid = process.pid
-var hostname = require('os').hostname()
+const pid = process.pid
+const hostname = require('os').hostname()
 
 function handle (req, res) {
   res.end('hello world')
-  var opts = {
+  const opts = {
     pid: pid,
     hostname: hostname,
     level: 30,

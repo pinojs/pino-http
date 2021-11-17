@@ -1,9 +1,9 @@
 'use strict'
 
-var http = require('http')
-var server = http.createServer(handle)
+const http = require('http')
+const server = http.createServer(handle)
 
-var logger = require('../')({
+const logger = require('../')({
   extreme: true
 })
 
