@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "lib": [ "es2015" ],
+    "module": "commonjs",
+    "noEmit": true,
+    "strict": true,
+    "esModuleInterop": true,
+  },
+  "include": [
+    "./*.test-d.ts",
+    "./*.d.ts"
+  ]
+}
