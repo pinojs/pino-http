@@ -56,9 +56,6 @@ test('default settings', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.req, 'req is defined')
     t.ok(line.res, 'res is defined')
     t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
@@ -78,9 +75,6 @@ test('stream in options', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.req, 'req is defined')
     t.ok(line.res, 'res is defined')
     t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
@@ -121,7 +115,7 @@ test('exposes the internal pino', function (t) {
   logger.logger.info('hello world')
 })
 
-test('uses the log level passed in as an option', function (t) {
+test('uses the string log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
 
@@ -131,9 +125,6 @@ test('uses the log level passed in as an option', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.level, 20, 'level')
     t.notOk(line.useLevel, 'useLevel not forwarded')
     t.end()
@@ -154,10 +145,27 @@ test('uses the custom log level passed in as an option', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.level, 40, 'level')
+    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
+    t.end()
+  })
+})
+
+test('uses the custom invalid log level passed in as an option', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customLogLevel: function (res, err) {
+      return 'error-log-level'
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 30, 'level')
     t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
     t.end()
   })
@@ -191,9 +199,6 @@ test('allocate a unique id to every request', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.not(line.req.id, lastId)
     lastId = line.req.id
     t.ok(line.req.id, 'req.id is defined')
@@ -218,9 +223,6 @@ test('uses a custom genReqId function', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(typeof line.req.id, 'string')
     t.equal(line.req.id, idToTest)
     t.end()
@@ -245,9 +247,6 @@ test('reuses existing req.id if present', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.req.id, someId)
     t.end()
   })
@@ -272,9 +271,6 @@ test('startTime', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(typeof line.responseTime, 'number')
     t.end()
   })
@@ -290,9 +286,6 @@ test('responseTime', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.responseTime >= 0, 'responseTime is defined')
     t.end()
   })
@@ -308,9 +301,6 @@ test('responseTime for errored request', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.responseTime >= 0, 'responseTime is defined')
     t.equal(line.msg, DEFAULT_REQUEST_ERROR_MSG, 'message is set')
     t.end()
@@ -333,9 +323,6 @@ test('responseTime for request emitting error event', function (t) {
   }, handle)
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.responseTime >= 0, 'responseTime is defined')
     t.end()
   })
@@ -387,9 +374,6 @@ test('auto logging with autoLogging set to true and path not ignored', function 
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.pass('path should log')
     t.end()
   })
@@ -433,9 +417,6 @@ test('auto logging with autoLogging set to true and getPath result is not ignore
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.pass('path should log')
     t.end()
   })
@@ -460,9 +441,6 @@ test('no auto logging with autoLogging set to use regular expressions. result is
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.pass('path should log')
     t.end()
   })
@@ -508,9 +486,6 @@ test('support a custom instance', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.req, 'req is defined')
     t.ok(line.res, 'res is defined')
     t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
@@ -541,9 +516,6 @@ test('support a custom instance with custom genReqId function', function (t) {
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.req, 'req is defined')
     t.ok(line.res, 'res is defined')
     t.notOk(line.genReqId)
@@ -602,9 +574,6 @@ test('does not return excessively long object', function (t) {
   }
 
   dest.on('data', function (obj) {
-    if (obj.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(Object.keys(obj.req).length, 6)
     t.end()
   })
@@ -794,9 +763,6 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.msg, customResponseMessage)
     t.end()
   })
@@ -804,9 +770,9 @@ test('uses the custom successMessage callback if passed in as an option', functi
 
 test('uses the custom receivedMessage callback if passed in as an option', function (t) {
   const dest = split(JSON.parse)
-  const message = 'Custom received message'
+  const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
-    customReceivedMessage: function (res) {
+    customReceivedMessage: function (_res, _req) {
       return message
     }
   }, dest)
@@ -828,7 +794,12 @@ test('uses the custom receivedMessage callback if passed in as an option', funct
 test('receve receivedMessage before successMessage', function (t) {
   t.plan(3)
   const dest = split(JSON.parse)
-  const logger = pinoHttp({}, dest)
+  const message = DEFAULT_REQUEST_RECEIVED_MSG
+  const logger = pinoHttp({
+    customReceivedMessage: function (_res, _req) {
+      return message
+    }
+  }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -857,9 +828,6 @@ test('uses the custom errorMessage callback if passed in as an option', function
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.msg.indexOf(customErrorMessage), 0)
     t.end()
   })
@@ -868,7 +836,12 @@ test('uses the custom errorMessage callback if passed in as an option', function
 test('receve receivedMessage before errorMessage', function (t) {
   t.plan(3)
   const dest = split(JSON.parse)
-  const logger = pinoHttp({}, dest)
+  const message = DEFAULT_REQUEST_RECEIVED_MSG
+  const logger = pinoHttp({
+    customReceivedMessage: function (_res, _req) {
+      return message
+    }
+  }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
@@ -899,9 +872,6 @@ test('uses custom log object attribute keys when provided, successful request', 
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.httpReq, 'httpReq is defined')
     t.ok(line.httpRes, 'httpRes is defined')
     t.equal(typeof line.timeTaken, 'number')
@@ -926,9 +896,6 @@ test('uses custom log object attribute keys when provided, error request', funct
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.httpReq, 'httpReq is defined')
     t.ok(line.httpRes, 'httpRes is defined')
     t.ok(line.httpErr, 'httpRes is defined')
@@ -957,9 +924,6 @@ test('uses custom request properties to log additional attributes when provided'
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.key1, 'value1')
     t.equal(line.key2, 'value2')
     t.end()
@@ -986,9 +950,6 @@ test('uses old custom request properties interface to log additional attributes'
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.key1, 'value1')
     t.equal(line.key2, 'value2')
     t.end()
@@ -1007,9 +968,6 @@ test('uses custom request properties to log additional attributes; custom props 
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.equal(line.key1, 'value1')
     t.end()
   })
@@ -1027,9 +985,6 @@ test('dont pass custom request properties to log additional attributes', functio
   })
 
   dest.on('data', function (line) {
-    if (line.msg === DEFAULT_REQUEST_RECEIVED_MSG) {
-      return
-    }
     t.ok(line.hostname, 'hostname is defined')
     t.ok(line.level, 'level is defined')
     t.ok(line.msg, 'msg is defined')
@@ -1042,15 +997,13 @@ test('dont pass custom request properties to log additional attributes', functio
 })
 
 test('auto logging and next callback', function (t) {
-  t.plan(4)
+  t.plan(3)
   const dest = split(JSON.parse)
   const logger = pinoHttp({ autoLogging: true }, dest)
 
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      t.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
-
       const line = dest.read()
       t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG)
 
@@ -1065,7 +1018,7 @@ test('auto logging and next callback', function (t) {
 })
 
 test('quiet request logging', function (t) {
-  t.plan(9)
+  t.plan(8)
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietReqLogger: true }, dest)
 
@@ -1080,8 +1033,6 @@ test('quiet request logging', function (t) {
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      t.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
-
       const quietLine = dest.read()
       t.equal(quietLine.msg, 'quiet message')
       t.equal(quietLine.reqId, 'testId')
@@ -1098,7 +1049,7 @@ test('quiet request logging', function (t) {
 })
 
 test('quiet request logging - custom request id key', function (t) {
-  t.plan(9)
+  t.plan(8)
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'customRequestId' } }, dest)
 
@@ -1113,8 +1064,6 @@ test('quiet request logging - custom request id key', function (t) {
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server, null, function () {
-      t.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
-
       const quietLine = dest.read()
       t.equal(quietLine.msg, 'quiet message')
       t.notOk(quietLine.req)
