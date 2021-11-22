@@ -11,6 +11,7 @@
     "pino-std-serializers": "^4.0.0"
   },
   "devDependencies": {
+    "@types/node": "^16.11.0",
     "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",

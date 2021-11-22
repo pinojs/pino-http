@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
     "target": "es6",
+    "esModuleInterop": true,
     "lib": [ "es2015" ],
     "module": "commonjs",
     "noEmit": true,
     "strict": true,
-    "esModuleInterop": true,
+    "moduleResolution": "node",
   },
   "include": [
     "./*.test-d.ts",
