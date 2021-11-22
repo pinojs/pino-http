@@ -134,7 +134,7 @@ test('uses the string log level passed in as an option', function (t) {
 test('uses the custom log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (res, err) {
+    customLogLevel: function (_res, _err, _req) {
       return 'warn'
     }
   }, dest)
@@ -154,7 +154,7 @@ test('uses the custom log level passed in as an option', function (t) {
 test('uses the custom invalid log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (res, err) {
+    customLogLevel: function (_res, _err, _req) {
       return 'error-log-level'
     }
   }, dest)
@@ -176,7 +176,7 @@ test('throw error if custom log level and log level passed in together', functio
   const throwFunction = function () {
     pinoHttp({
       useLevel: 'info',
-      customLogLevel: function (res, err) {
+      customLogLevel: function (_res, _err, _req) {
         return 'warn'
       }
     }, dest)
@@ -772,7 +772,7 @@ test('uses the custom receivedMessage callback if passed in as an option', funct
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
-    customReceivedMessage: function (_res, _req) {
+    customReceivedMessage: function (_req, _res) {
       return message
     }
   }, dest)
@@ -796,7 +796,7 @@ test('receve receivedMessage before successMessage', function (t) {
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
-    customReceivedMessage: function (_res, _req) {
+    customReceivedMessage: function (_req, _res) {
       return message
     }
   }, dest)
@@ -838,7 +838,7 @@ test('receve receivedMessage before errorMessage', function (t) {
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
-    customReceivedMessage: function (_res, _req) {
+    customReceivedMessage: function (_req, _res) {
       return message
     }
   }, dest)
