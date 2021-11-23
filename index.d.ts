@@ -23,7 +23,7 @@ interface HttpLogger {
 }
 type ReqId = number | string | object;
 
-interface Options extends pino.LoggerOptions {
+export interface Options extends pino.LoggerOptions {
     logger?: pino.Logger | undefined;
     genReqId?: GenReqId | undefined;
     useLevel?: pino.Level | undefined;
