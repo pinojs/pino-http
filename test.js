@@ -115,7 +115,7 @@ test('exposes the internal pino', function (t) {
   logger.logger.info('hello world')
 })
 
-test('uses the string log level passed in as an option', function (t) {
+test('uses the log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
 

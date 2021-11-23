@@ -51,7 +51,7 @@ function pinoLogger (opts, stream) {
     return defaultValue
   }
 
-  function getLogLevelFormCustomLogLevel (customLogLevel, useLevel, res, err, req) {
+  function getLogLevelFromCustomLogLevel (customLogLevel, useLevel, res, err, req) {
     return customLogLevel ? getValidLogLevel(customLogLevel(res, err, req), useLevel) : useLevel
   }
 
@@ -88,7 +88,7 @@ function pinoLogger (opts, stream) {
 
     const log = this.log
     const responseTime = Date.now() - this[startTime]
-    const level = getLogLevelFormCustomLogLevel(customLogLevel, useLevel, this, err)
+    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
@@ -150,7 +150,7 @@ function pinoLogger (opts, stream) {
 
       if (shouldLogSuccess) {
         if (receivedMessage !== undefined) {
-          const level = getLogLevelFormCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
+          const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
           log[level]({}, receivedMessage(req, res))
         }
 
