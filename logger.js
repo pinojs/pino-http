@@ -40,7 +40,22 @@ function pinoLogger (opts, stream) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
   }
 
-  const useLevel = opts.useLevel || 'info'
+  const LOG_LEVEL_STRS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']
+  function getValidLogLevel (level, defaultValue = 'info') {
+    if (level && typeof level === 'string') {
+      const logLevel = level.trim().toLowerCase()
+      if (LOG_LEVEL_STRS.includes(logLevel) === true) {
+        return logLevel
+      }
+    }
+    return defaultValue
+  }
+
+  function getLogLevelFromCustomLogLevel (customLogLevel, useLevel, res, err, req) {
+    return customLogLevel ? getValidLogLevel(customLogLevel(res, err, req), useLevel) : useLevel
+  }
+
+  const useLevel = getValidLogLevel(opts.useLevel)
   const customLogLevel = opts.customLogLevel
   delete opts.useLevel
   delete opts.customLogLevel
@@ -54,6 +69,7 @@ function pinoLogger (opts, stream) {
   const autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
   delete opts.autoLogging
 
+  const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
   const successMessage = opts.customSuccessMessage || function () { return 'request completed' }
   const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
@@ -72,7 +88,7 @@ function pinoLogger (opts, stream) {
 
     const log = this.log
     const responseTime = Date.now() - this[startTime]
-    const level = customLogLevel ? customLogLevel(this, err) : useLevel
+    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
@@ -133,6 +149,11 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
+        if (receivedMessage !== undefined) {
+          const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
+          log[level]({}, receivedMessage(req, res))
+        }
+
         res.on('finish', onResFinished)
       }
 
