@@ -21,4 +21,12 @@ function handle (req, res) {
   res.end('hello world')
 }
 
-server.listen(3000)
+server.listen(0, '127.0.0.1', (err) => {
+  if (err) {
+    console.log(err)
+    process.exit(1)
+  }
+
+  const url = `http://localhost:${server.address().port}/`
+  process.stderr.write(url)
+})

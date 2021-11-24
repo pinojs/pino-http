@@ -7,7 +7,7 @@ const { join } = require('path')
 const { spawn } = require('child_process')
 
 test('custom format transport', function (t) {
-  t.plan(1)
+  t.plan(2)
 
   const ls = spawn('node', [join(__dirname, '../example-custom-format.js')], {
     cwd: process.cwd()
@@ -16,14 +16,13 @@ test('custom format transport', function (t) {
   ls.stderr.setEncoding('utf8')
 
   ls.stdout.on('data', (data) => {
-    t.match(data.trim(), /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+\d{4}\] GET http:\/\/localhost:3000\/ 200 \d{1,2}ms/)
+    t.match(data.trim(), /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+\d{4}\] GET http:\/\/localhost:\d{4,6}\/ 200 \d{1,2}ms/)
     ls.kill()
   })
 
-  ls.stderr.on('data', () => { t.fail('must not throw error') })
-
-  setTimeout(() => {
-    http.get('http://localhost:3000/', () => {})
+  ls.stderr.on('data', (url) => {
+    t.ok(url.startsWith('http://'))
+    http.get(url, () => {})
       .on('error', (e) => { t.error(e) })
-  }, 800)
+  })
 })
