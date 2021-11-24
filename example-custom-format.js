@@ -22,8 +22,8 @@ function handle (req, res) {
 }
 
 server.listen(0, '127.0.0.1', (err) => {
+  // istanbul ignore next
   if (err) {
-    console.log(err)
     process.exit(1)
   }
 
