@@ -15,6 +15,7 @@
     "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",
+    "pino-http-print": "github:pinojs/pino-http-print#master",
     "pino-pretty": "^7.1.0",
     "pre-commit": "^1.1.2",
     "split2": "^4.0.0",
@@ -26,7 +27,7 @@
   },
   "scripts": {
     "benchmark": "bash ./scripts/benchmark-all",
-    "test": "standard && tap test.js && npm run test-types",
+    "test": "standard && tap test/*.js && npm run test-types",
     "fix": "standard --fix",
     "test-types": "tsc && tsd && ts-node index.test-d.ts"
   },
