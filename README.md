@@ -229,6 +229,25 @@ http.createServer((req, res) => {
 }).listen(3000)
 ```
 
+##### Custom formatters
+
+You can customize the format of the log output by passing a [Pino transport](https://github.com/pinojs/pino/blob/master/docs/transports.md#v7-transports).
+
+```js
+const logger = require('pino-http')({
+  quietReqLogger: true, // turn off the default logging output
+  transport: {
+    target: 'pino-http-print', // use the pino-http-print transport and its formatting output
+    options: {
+      destination: 1,
+      all: true,
+      translateTime: true
+    }
+  }
+})
+```
+
+
 #### Default serializers
 
 ##### pinoHttp.stdSerializers.req
