@@ -2,7 +2,7 @@
 
 const test = require('tap').test
 const http = require('http')
-const pinoHttp = require('./')
+const pinoHttp = require('../')
 const pino = require('pino')
 const split = require('split2')
 const { join } = require('path')
@@ -97,7 +97,7 @@ test('add transport.caller information when missing', function (t) {
 
   const logger = pinoHttp(options)
   logger.logger.info('hello world')
-  t.equal(options.transport.caller, join(__dirname, 'logger.js'), 'caller is set')
+  t.equal(options.transport.caller, join(__dirname, '../logger.js'), 'caller is set')
   t.end()
 })
 
