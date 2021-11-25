@@ -116,6 +116,8 @@ const options: Options = {
   quietReqLogger: canBeUndefined(rtnBool()),
 }
 
+// can't pass 'useLevel' and 'customLogLevel' together
+delete options.customLogLevel;
 const ph: HttpLogger = pinoHttp(options);
 
 const stdSerializers: StdSerializers = {
