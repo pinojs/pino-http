@@ -3,11 +3,13 @@
 
 import { Writable } from 'stream';
 import { IncomingMessage, ServerResponse } from 'http';
+import { Socket } from 'net';
 import pino from 'pino';
-import pinoHttp from './';
+import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers } from './';
 
 const logger = pino();
 
+pinoHttp();
 pinoHttp({ logger });
 pinoHttp({ logger }).logger = logger;
 pinoHttp({ genReqId: (req: IncomingMessage) => req.statusCode || 200 });
@@ -33,3 +35,110 @@ pinoHttp({ reqCustomProps: (req: IncomingMessage, res: ServerResponse) => ({ key
 pinoHttp({ wrapSerializers: false });
 pinoHttp(new Writable());
 pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'reqId' }});
+
+const rand = () => {
+  let rtn = true;
+  if (Math.random() < 0.5) rtn = false;
+  return rtn;
+}
+
+const canBeUndefined = <T>(input: T) => {
+  if (rand()) return input;
+  return undefined;
+}
+
+const rtnBool = () => {
+  let rtn = true;
+  if (rand()) rtn = false;
+  return rtn;
+}
+
+const rtnLevel = () => {
+  let rtn: pino.Level = 'debug';
+  if (rand()) {
+    rtn = 'error';
+  } else if (rand()) {
+    rtn = 'fatal';
+  } else if (rand()) {
+    rtn = 'info';
+  } else if (rand()) {
+    rtn = 'trace';
+  } else if (rand()) {
+    rtn = 'warn';
+  }
+  return rtn;
+}
+
+const genReqId: GenReqId = () => {
+  let rtn: ReqId = 123;
+  if (rand()){
+    rtn = 'str';
+  } else {
+    rtn = ({} as object);
+  }
+  return rtn;
+}
+
+const autoLoggingOptions = (() => {
+  let rtn: AutoLoggingOptions | boolean = true;
+  if (rand()) {
+    rtn = {
+      ignore: canBeUndefined(() => true),
+      ignorePaths: canBeUndefined(['str', /regex/, new RegExp('regex', 'g')]),
+      getPath: canBeUndefined(() => '/path'),
+    };
+  } else if (rand()) {
+    rtn = false;
+  }
+  return rtn;
+})();
+
+const customAttributeKeys: CustomAttributeKeys = {
+  req: canBeUndefined('req'),
+  res: canBeUndefined('res'),
+  err: canBeUndefined('err'),
+  reqId: canBeUndefined('reqId'),
+  responseTime: canBeUndefined('responseTime'),
+}
+
+const options: Options = {
+  logger: canBeUndefined(logger),
+  genReqId: canBeUndefined(genReqId),
+  useLevel: canBeUndefined(rtnLevel()),
+  stream: canBeUndefined({ write: (msg: string) => { return } }),
+  autoLogging: canBeUndefined(autoLoggingOptions),
+  customLogLevel: canBeUndefined((res: ServerResponse, error: Error) => rtnLevel()),
+  customSuccessMessage: canBeUndefined((res: ServerResponse) => 'successMessage'),
+  customErrorMessage: canBeUndefined((error: Error, res: ServerResponse) => 'errorMessage'),
+  customAttributeKeys: canBeUndefined(customAttributeKeys),
+  wrapSerializers: canBeUndefined(rtnBool()),
+  reqCustomProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
+  quietReqLogger: canBeUndefined(rtnBool()),
+}
+
+const ph: HttpLogger = pinoHttp(options);
+
+const stdSerializers: StdSerializers = {
+  err: {
+    type: 'type',
+    message: 'message',
+    stack: 'stack',
+    raw: new Error(),
+    'str': {},
+    123: {},
+  },
+  req: {
+    id: canBeUndefined('id'),
+    method: 'GET',
+    url: 'http://0.0.0.0',
+    headers: { header: 'header' },
+    remoteAddress: '0.0.0.0:80',
+    remotePort: 80,
+    raw: new IncomingMessage(new Socket()),
+  },
+  res: {
+    statusCode: 200,
+    headers: { header: 'header' },
+    raw: new ServerResponse(new IncomingMessage(new Socket())),
+  },
+};
