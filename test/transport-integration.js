@@ -16,7 +16,7 @@ test('custom format transport', function (t) {
   ls.stderr.setEncoding('utf8')
 
   ls.stdout.on('data', (data) => {
-    t.match(data.trim(), /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+\d{4}\] GET http:\/\/localhost:\d{4,6}\/ 200 \d{1,2}ms/)
+    t.match(data.trim(), /\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+\d{4}\] GET http:\/\/.+:\d{4,6}\/ 200 \d{1,2}ms/)
     ls.kill()
   })
 

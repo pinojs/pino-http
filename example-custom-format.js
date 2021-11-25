@@ -27,6 +27,6 @@ server.listen(0, '127.0.0.1', (err) => {
     process.exit(1)
   }
 
-  const url = `http://localhost:${server.address().port}/`
+  const url = `http://${server.address().address}:${server.address().port}/`
   process.stderr.write(url)
 })
