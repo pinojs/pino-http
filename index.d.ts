@@ -17,13 +17,13 @@ declare function pinoHttp(opts?: Options, stream?: pino.DestinationStream): Http
 
 declare function pinoHttp(stream?: pino.DestinationStream): HttpLogger;
 
-interface HttpLogger {
+export interface HttpLogger {
     (req: IncomingMessage, res: ServerResponse, next?: () => void): void;
     logger: pino.Logger;
 }
-type ReqId = number | string | object;
+export type ReqId = number | string | object;
 
-interface Options extends pino.LoggerOptions {
+export interface Options extends pino.LoggerOptions {
     logger?: pino.Logger | undefined;
     genReqId?: GenReqId | undefined;
     useLevel?: pino.Level | undefined;
@@ -38,17 +38,17 @@ interface Options extends pino.LoggerOptions {
     quietReqLogger?: boolean | undefined;
 }
 
-interface GenReqId {
+export interface GenReqId {
     (req: IncomingMessage): ReqId;
 }
 
-interface AutoLoggingOptions {
+export interface AutoLoggingOptions {
     ignore?: ((req: IncomingMessage) => boolean);
     ignorePaths?: Array<string | RegExp> | undefined;
     getPath?: ((req: IncomingMessage) => string | undefined) | undefined;
 }
 
-interface CustomAttributeKeys {
+export interface CustomAttributeKeys {
     req?: string | undefined;
     res?: string | undefined;
     err?: string | undefined;
@@ -56,7 +56,7 @@ interface CustomAttributeKeys {
     responseTime?: string | undefined;
 }
 
-interface StdSerializers {
+export interface StdSerializers {
     err: SerializedError;
     req: SerializedRequest;
     res: SerializedResponse;
