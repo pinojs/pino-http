@@ -1,4 +1,4 @@
-// Type definitions for pino-http 6.0
+// Type definitions for pino-http 6.x
 // Project: https://github.com/pinojs/pino-http#readme
 // Definitions by: Christian Rackerseder <https://github.com/screendriver>
 //                 Jeremy Forsythe <https://github.com/jdforsythe>
@@ -67,3 +67,19 @@ export default pinoHttp;
 export const startTime: unique symbol;
 
 export const stdSerializers: StdSerializers;
+
+declare module "http" {
+    interface IncomingMessage {
+      id: ReqId;
+      log: pino.Logger;
+    }
+  
+    interface ServerResponse {
+      err?: Error | undefined;
+    }
+  
+    interface OutgoingMessage {
+      [startTime]: number;
+    }
+  }
+  

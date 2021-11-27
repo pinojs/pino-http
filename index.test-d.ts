@@ -5,7 +5,8 @@ import { Writable } from 'stream';
 import { IncomingMessage, ServerResponse } from 'http';
 import { Socket } from 'net';
 import pino from 'pino';
-import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers } from './';
+import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers, startTime } from './';
+import { RequestListener } from 'http';
 
 const logger = pino();
 
@@ -143,4 +144,12 @@ const stdSerializers: StdSerializers = {
     headers: { header: 'header' },
     raw: new ServerResponse(new IncomingMessage(new Socket())),
   },
+};
+
+const httpServerListener: RequestListener = (request, response) => {
+  // req.log and req.id should be available
+  request.log.info(`Request received with request ID ${request.id}`);
+  // res[startTime] should be available
+  response[startTime] = Date.now();
+  response.end("Hello world");
 };
