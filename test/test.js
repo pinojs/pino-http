@@ -90,7 +90,7 @@ test('add transport.caller information when missing', function (t) {
   const options = {
     transport: {
       targets: [
-        { target: 'pino/file', options: { destination: '/dev/null' } }
+        { target: 'pino/file', options: { destination: (process.platform !== 'win32') ? '/dev/null' : undefined } }
       ]
     }
   }
