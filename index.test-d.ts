@@ -109,6 +109,10 @@ const options: Options = {
   stream: canBeUndefined({ write: (msg: string) => { return } }),
   autoLogging: canBeUndefined(autoLoggingOptions),
   customLogLevel: canBeUndefined((res: ServerResponse, error: Error) => rtnLevel()),
+  customReceivedMessage: canBeUndefined((req, res) => {
+    res.setHeader('x-custom-header-123', 'custom-header-value');
+    return `Received HTTP ${req.httpVersion} ${req.method}`;
+  }),
   customSuccessMessage: canBeUndefined((res: ServerResponse) => 'successMessage'),
   customErrorMessage: canBeUndefined((error: Error, res: ServerResponse) => 'errorMessage'),
   customAttributeKeys: canBeUndefined(customAttributeKeys),
