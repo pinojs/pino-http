@@ -1,11 +1,11 @@
 
-/// <reference path="./index.d.ts"/>
+/// <reference path="index.d.ts"/>
 
 import { Writable } from 'stream';
 import { IncomingMessage, ServerResponse } from 'http';
 import { Socket } from 'net';
 import pino from 'pino';
-import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers, startTime } from './';
+import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers, startTime } from '.';
 import { RequestListener } from 'http';
 
 const logger = pino();

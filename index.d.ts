@@ -12,9 +12,9 @@ import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
 import { SerializedError, SerializedRequest, SerializedResponse } from 'pino-std-serializers';
 
-declare function pinoHttp(opts?: Options, stream?: pino.DestinationStream): HttpLogger;
+declare function PinoHttp(opts?: Options, stream?: pino.DestinationStream): HttpLogger;
 
-declare function pinoHttp(stream?: pino.DestinationStream): HttpLogger;
+declare function PinoHttp(stream?: pino.DestinationStream): HttpLogger;
 
 export interface HttpLogger {
     (req: IncomingMessage, res: ServerResponse, next?: () => void): void;
@@ -61,7 +61,8 @@ export interface StdSerializers {
     res: SerializedResponse;
 }
 
-export default pinoHttp;
+export default PinoHttp;
+export { PinoHttp as pinoHttp }
 
 export const startTime: unique symbol;
 
