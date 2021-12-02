@@ -204,3 +204,5 @@ module.exports.stdSerializers = {
   res: serializers.res
 }
 module.exports.startTime = startTime
+module.exports.default = pinoLogger
+module.exports.pinoHttp = pinoLogger
