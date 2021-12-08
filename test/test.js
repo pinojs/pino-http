@@ -151,6 +151,32 @@ test('uses the custom log level passed in as an option', function (t) {
   })
 })
 
+test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(
+    {
+      customLogLevel: function (_res, _err, _req) {
+        return 'silent'
+      }
+    },
+    dest
+  )
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, null, function () {
+      const line = dest.read()
+      t.equal(line, null)
+      t.end()
+    })
+  })
+})
+
 test('uses the custom invalid log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
