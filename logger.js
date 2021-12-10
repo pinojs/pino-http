@@ -90,6 +90,10 @@ function pinoLogger (opts, stream) {
     const responseTime = Date.now() - this[startTime]
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
+    if (level === 'silent') {
+      return
+    }
+
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
 

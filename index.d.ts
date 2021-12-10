@@ -25,10 +25,10 @@ export type ReqId = number | string | object;
 export interface Options extends pino.LoggerOptions {
     logger?: pino.Logger | undefined;
     genReqId?: GenReqId | undefined;
-    useLevel?: pino.Level | undefined;
+    useLevel?: pino.LevelWithSilent | undefined;
     stream?: pino.DestinationStream | undefined;
     autoLogging?: boolean | AutoLoggingOptions | undefined;
-    customLogLevel?: ((res: ServerResponse, error: Error) => pino.Level) | undefined;
+    customLogLevel?: ((res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customSuccessMessage?: ((res: ServerResponse) => string) | undefined;
     customErrorMessage?: ((error: Error, res: ServerResponse) => string) | undefined;

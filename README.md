@@ -96,7 +96,7 @@ $ node example.js | pino-pretty
 * `logger`: parent pino instance for a child logger instance, which will be used by `pino-http`. To refer to this child instance, use [pinoHttp.logger](#pinohttplogger-plogger)
 * `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
-* `customLogLevel`: set to a `function (res, err, req) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued. This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
+* `customLogLevel`: set to a `function (res, err, req) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued (`silent` will prevent logging). This option is mutually exclusive with the `useLevel` option. The first argument is the HTTP response. The second argument is an error object if an error has occurred in the request.
 * `autoLogging`: set to `false`, to disable the automatic "request completed" and "request errored" logging. Defaults to `true`. If set to an object, you can provide more options.
 * `autoLogging.ignore`: set to a `function (req) => { /* returns boolean */ }`. Useful for defining logic based on req properties (such as a user-agent header) to ignore successful requests.
 * `autoLogging.ignorePaths`: array that holds one or many paths that should not autolog on completion. Paths will be matched exactly to the url path `req.url` (using Node class `URL.pathname`). This is useful for ignoring e.g. health check paths that get called every X seconds, and would fill out the logs unnecessarily. If the path matches and succeeds (http 200), it will not log any text. If it fails, it will log the error (as with any other path).
@@ -148,6 +148,8 @@ const logger = require('pino-http')({
       return 'warn'
     } else if (res.statusCode >= 500 || err) {
       return 'error'
+    } else if (res.statusCode >= 300 && res.statusCode < 400) {
+      return 'silent'
     }
     return 'info'
   },

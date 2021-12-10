@@ -55,7 +55,7 @@ const rtnBool = () => {
 }
 
 const rtnLevel = () => {
-  let rtn: pino.Level = 'debug';
+  let rtn: pino.LevelWithSilent = 'debug';
   if (rand()) {
     rtn = 'error';
   } else if (rand()) {
@@ -66,6 +66,8 @@ const rtnLevel = () => {
     rtn = 'trace';
   } else if (rand()) {
     rtn = 'warn';
+  } else if (rand()) {
+    rtn = 'silent';
   }
   return rtn;
 }
