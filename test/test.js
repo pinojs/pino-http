@@ -983,7 +983,7 @@ test('uses old custom request properties interface to log additional attributes'
 })
 
 test('uses custom request properties to log additional attributes when response provided', function (t) {
-  var dest = split(JSON.parse)
+  const dest = split(JSON.parse)
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -992,7 +992,7 @@ test('uses custom request properties to log additional attributes when response 
       }
     }
   }
-  var logger = pinoHttp({
+  const logger = pinoHttp({
     reqCustomProps: customPropsHandler
   }, dest)
 

@@ -5,7 +5,7 @@ const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
-var reqObject = Symbol('reqObject')
+const reqObject = Symbol('reqObject')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -23,7 +23,7 @@ function pinoLogger (opts, stream) {
   const responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
-  const customProps = opts.customProps || opts.reqCustomProps || undefined
+  const customProps = opts.customProps || opts.reqCustomProps || {}
 
   opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
   if (opts.wrapSerializers) {
@@ -87,7 +87,6 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
-    const log = this.log
     const responseTime = Date.now() - this[startTime]
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
@@ -95,11 +94,11 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    var req = this.log[reqObject]
-    var res = this
+    const req = this[reqObject]
+    const res = this
 
-    var customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    log = log.child(customPropBindings)
+    const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
+    const log = this.log.child(customPropBindings)
 
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
@@ -107,7 +106,7 @@ function pinoLogger (opts, stream) {
       log[level]({
         [resKey]: this,
         [errKey]: error,
-        [responseTimeKey]: responseTime,
+        [responseTimeKey]: responseTime
       }, errorMessage(error, this))
       return
     }
@@ -125,13 +124,9 @@ function pinoLogger (opts, stream) {
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
-    let fullReqLogger = log.child({ [reqKey]: req })
-    const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    if (customPropBindings) {
-      fullReqLogger = fullReqLogger.child(customPropBindings)
-    }
+    const fullReqLogger = log.child({ [reqKey]: req })
 
-    res.log = { log: fullReqLogger, customPropsFunc : customPropsFactory(customProps)(req)} 
+    res.log = fullReqLogger
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
