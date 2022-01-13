@@ -124,7 +124,9 @@ function pinoLogger (opts, stream) {
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
-    const fullReqLogger = log.child({ [reqKey]: req })
+    let fullReqLogger = log.child({ [reqKey]: req })
+    const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
+    fullReqLogger = fullReqLogger.child(customPropBindings)
 
     res.log = fullReqLogger
     req.log = quietReqLogger ? log : fullReqLogger
@@ -161,7 +163,7 @@ function pinoLogger (opts, stream) {
       if (shouldLogSuccess) {
         if (receivedMessage !== undefined) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
-          log[level]({}, receivedMessage(req, res))
+          req.log[level](receivedMessage(req, res))
         }
 
         res.on('finish', onResFinished)

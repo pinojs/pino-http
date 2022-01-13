@@ -1008,6 +1008,48 @@ test('uses custom request properties to log additional attributes when response 
   })
 })
 
+test('uses custom request properties and a receivedMessage callback and the properties are set on the receivedMessage', function (t) {
+  const dest = split(JSON.parse)
+  const message = DEFAULT_REQUEST_RECEIVED_MSG
+  const logger = pinoHttp({
+    customReceivedMessage: function (_req, _res) {
+      return message
+    },
+    reqCustomProps: (req, res) => {
+      return {
+        key1: 'value1',
+        key2: res?.statusCode
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
+
+  let calls = 0
+  dest.on('data', function (line) {
+    calls++
+    if (line.msg === message) {
+      t.equal(line.key1, 'value1')
+      t.equal(line.key2, 200)
+      t.equal(line.req.url, ERROR_URL)
+      t.ok(line.req, 'req is defined')
+      t.notOk(line.res, 'res is not defined yet')
+    } else if (line.msg === DEFAULT_REQUEST_ERROR_MSG) {
+      t.equal(line.key1, 'value1')
+      t.equal(line.key2, 500)
+      t.equal(line.req.url, ERROR_URL)
+      t.ok(line.req, 'req is defined')
+      t.ok(line.res, 'res is defined')
+    }
+    if (calls === 2) {
+      t.end()
+    }
+  })
+})
+
 test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
