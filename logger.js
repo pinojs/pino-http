@@ -23,7 +23,7 @@ function pinoLogger (opts, stream) {
   const responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
-  const customProps = opts.customProps || opts.reqCustomProps || {}
+  const customProps = opts.customProps || opts.reqCustomProps || undefined
 
   opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
   if (opts.wrapSerializers) {
@@ -87,6 +87,7 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
+    let log = this.log
     const responseTime = Date.now() - this[startTime]
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
@@ -98,7 +99,9 @@ function pinoLogger (opts, stream) {
     const res = this
 
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    const log = this.log.child(customPropBindings)
+    if (customPropBindings) {
+      log = this.log.child(customPropBindings)
+    }
 
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
@@ -126,7 +129,9 @@ function pinoLogger (opts, stream) {
 
     let fullReqLogger = log.child({ [reqKey]: req })
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
-    fullReqLogger = fullReqLogger.child(customPropBindings)
+    if (customPropBindings) {
+      fullReqLogger = fullReqLogger.child(customPropBindings)
+    }
 
     res.log = fullReqLogger
     req.log = quietReqLogger ? log : fullReqLogger

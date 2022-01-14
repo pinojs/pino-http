@@ -1018,7 +1018,7 @@ test('uses custom request properties and a receivedMessage callback and the prop
     reqCustomProps: (req, res) => {
       return {
         key1: 'value1',
-        key2: res?.statusCode
+        key2: res.statusCode
       }
     }
   }, dest)
