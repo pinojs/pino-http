@@ -5,6 +5,7 @@ const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
+const reqObject = Symbol('reqObject')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -86,12 +87,20 @@ function pinoLogger (opts, stream) {
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
-    const log = this.log
+    let log = this.log
     const responseTime = Date.now() - this[startTime]
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
 
     if (level === 'silent') {
       return
+    }
+
+    const req = this[reqObject]
+    const res = this
+
+    const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
+    if (customPropBindings) {
+      log = this.log.child(customPropBindings)
     }
 
     if (err || this.err || this.statusCode >= 500) {
@@ -128,6 +137,8 @@ function pinoLogger (opts, stream) {
     req.log = quietReqLogger ? log : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
+    // carry request to be executed when response is finished
+    res[reqObject] = req
 
     if (autoLogging) {
       if (autoLoggingIgnorePaths.length) {
@@ -157,7 +168,7 @@ function pinoLogger (opts, stream) {
       if (shouldLogSuccess) {
         if (receivedMessage !== undefined) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
-          log[level]({}, receivedMessage(req, res))
+          req.log[level](receivedMessage(req, res))
         }
 
         res.on('finish', onResFinished)
