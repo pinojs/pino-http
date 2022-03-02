@@ -77,6 +77,7 @@ declare module "http" {
   
     interface ServerResponse {
       err?: Error | undefined;
+      log: pino.Logger;
     }
   
     interface OutgoingMessage {
