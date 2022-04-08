@@ -778,8 +778,8 @@ test('uses the custom successMessage callback if passed in as an option', functi
   const dest = split(JSON.parse)
   const customResponseMessage = 'Custom response message'
   const logger = pinoHttp({
-    customSuccessMessage: function (res) {
-      return customResponseMessage
+    customSuccessMessage: function (res, req) {
+      return customResponseMessage + ' ' + req.method
     }
   }, dest)
 
@@ -789,7 +789,7 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customResponseMessage)
+    t.equal(line.msg, customResponseMessage + ' GET')
     t.end()
   })
 })
@@ -843,8 +843,8 @@ test('uses the custom errorMessage callback if passed in as an option', function
   const dest = split(JSON.parse)
   const customErrorMessage = 'Custom error message'
   const logger = pinoHttp({
-    customErrorMessage: function (err, res) {
-      return customErrorMessage + ' ' + err.toString()
+    customErrorMessage: function (err, res, req) {
+      return customErrorMessage + ' ' + req.method + ' ' + err.toString()
     }
   }, dest)
 
@@ -854,7 +854,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg.indexOf(customErrorMessage), 0)
+    t.equal(line.msg.indexOf(customErrorMessage + ' GET'), 0)
     t.end()
   })
 })
