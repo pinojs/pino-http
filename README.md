@@ -103,8 +103,8 @@ $ node example.js | pino-pretty
 * `autoLogging.getPath`: set to a `function (req) => { /* returns path string */ }`. This function will be invoked to return the current path as a string. This is useful for checking `autoLogging.ignorePaths` against a path other than the default `req.url`. e.g. An express server where `req.originalUrl` is preferred.
 * `stream`: same as the second parameter
 * `customReceivedMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each request received, setting "msg" property to returned string. If not set, nothing value will be used.
-* `customSuccessMessage`: set to a `function (res) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
-* `customErrorMessage`: set to a `function (err, res) => { /* returns message string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
+* `customSuccessMessage`: set to a `function (res, req) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
+* `customErrorMessage`: set to a `function (err, res, req) => { /* returns message string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
 * `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, `responseTime` and, when using quietReqLogger, `reqId`.
 * `wrapSerializers`: when `false`, custom serializers will be passed the raw value directly. Defaults to `true`.
 * `customProps`: set to a `function (req,res) => { /* returns on object */ }` or `{ /* returns on object */ }` This function will be invoked for each request with `req` and `res` where we could pass additional properties that needs to be logged outside the `req`.
@@ -155,11 +155,11 @@ const logger = require('pino-http')({
   },
 
   // Define a custom success message
-  customSuccessMessage: function (res) {
+  customSuccessMessage: function (res, req) {
     if (res.statusCode === 404) {
       return 'resource not found'
     }
-    return 'request completed'
+    return `${req.method} completed`
   },
 
   // Define a custom receive message
@@ -168,7 +168,7 @@ const logger = require('pino-http')({
   },
 
   // Define a custom error message
-  customErrorMessage: function (error, res) {
+  customErrorMessage: function (error, res, _req) {
     return 'request errored with status code: ' + res.statusCode
   },
   // Override attribute keys for the log object
