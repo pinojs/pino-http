@@ -24,8 +24,8 @@ pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-ag
 pinoHttp({ autoLogging: { ignorePaths: ['/health'] } });
 pinoHttp({ autoLogging: { ignorePaths: [/\/health/] } });
 pinoHttp({ autoLogging: { ignorePaths: ['/health'], getPath: (req: IncomingMessage) => req.url } });
-pinoHttp({ customSuccessMessage: (res: ServerResponse, req: IncomingMessage) => 'Success' });
-pinoHttp({ customErrorMessage: (error: Error, res: ServerResponse, req: IncomingMessage) => `Error - ${error}` });
+pinoHttp({ customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => 'Success' });
+pinoHttp({ customErrorMessage: (error: Error, req: IncomingMessage, res: ServerResponse) => `Error - ${error}` });
 pinoHttp({ customAttributeKeys: { req: 'req' } });
 pinoHttp({ customAttributeKeys: { res: 'res' } });
 pinoHttp({ customAttributeKeys: { err: 'err' } });
@@ -115,8 +115,8 @@ const options: Options = {
     res.setHeader('x-custom-header-123', 'custom-header-value');
     return `Received HTTP ${req.httpVersion} ${req.method}`;
   }),
-  customSuccessMessage: canBeUndefined((res: ServerResponse, req: IncomingMessage) => 'successMessage'),
-  customErrorMessage: canBeUndefined((error: Error, res: ServerResponse, req: IncomingMessage) => 'errorMessage'),
+  customSuccessMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse) => 'successMessage'),
+  customErrorMessage: canBeUndefined((error: Error, req: IncomingMessage, res: ServerResponse) => 'errorMessage'),
   customAttributeKeys: canBeUndefined(customAttributeKeys),
   wrapSerializers: canBeUndefined(rtnBool()),
   reqCustomProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),

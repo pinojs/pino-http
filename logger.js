@@ -110,14 +110,14 @@ function pinoLogger (opts, stream) {
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime
-      }, errorMessage(error, this, req))
+      }, errorMessage(error, req, this))
       return
     }
 
     log[level]({
       [resKey]: this,
       [responseTimeKey]: responseTime
-    }, successMessage(this, req))
+    }, successMessage(req, this))
   }
 
   function loggingMiddleware (req, res, next) {
