@@ -53,7 +53,7 @@ function pinoLogger (opts, stream) {
   }
 
   function getLogLevelFromCustomLogLevel (customLogLevel, useLevel, res, err, req) {
-    return customLogLevel ? getValidLogLevel(customLogLevel(res, err, req), useLevel) : useLevel
+    return customLogLevel ? getValidLogLevel(customLogLevel(req, res, err), useLevel) : useLevel
   }
 
   const useLevel = getValidLogLevel(opts.useLevel)

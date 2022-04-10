@@ -134,7 +134,7 @@ test('uses the log level passed in as an option', function (t) {
 test('uses the custom log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (_res, _err, _req) {
+    customLogLevel: function (_req, _res, _err) {
       return 'warn'
     }
   }, dest)
@@ -155,7 +155,7 @@ test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
     {
-      customLogLevel: function (_res, _err, _req) {
+      customLogLevel: function (_req, _res, _err) {
         return 'silent'
       }
     },
@@ -180,7 +180,7 @@ test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
 test('uses the custom invalid log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (_res, _err, _req) {
+    customLogLevel: function (_req, _res, _err) {
       return 'error-log-level'
     }
   }, dest)
@@ -202,7 +202,7 @@ test('throw error if custom log level and log level passed in together', functio
   const throwFunction = function () {
     pinoHttp({
       useLevel: 'info',
-      customLogLevel: function (_res, _err, _req) {
+      customLogLevel: function (_req, _res, _err) {
         return 'warn'
       }
     }, dest)

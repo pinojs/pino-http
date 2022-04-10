@@ -28,7 +28,7 @@ export interface Options extends pino.LoggerOptions {
     useLevel?: pino.LevelWithSilent | undefined;
     stream?: pino.DestinationStream | undefined;
     autoLogging?: boolean | AutoLoggingOptions | undefined;
-    customLogLevel?: ((res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
+    customLogLevel?: ((req: IncomingMessage, res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customErrorMessage?: ((error: Error, req: IncomingMessage, res: ServerResponse) => string) | undefined;

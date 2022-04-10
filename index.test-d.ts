@@ -31,7 +31,7 @@ pinoHttp({ customAttributeKeys: { res: 'res' } });
 pinoHttp({ customAttributeKeys: { err: 'err' } });
 pinoHttp({ customAttributeKeys: { responseTime: 'responseTime' } });
 pinoHttp({ customAttributeKeys: { req: 'req', res: 'res', err: 'err', responseTime: 'responseTime' } });
-pinoHttp({ customLogLevel: (res: ServerResponse, error: Error) => 'info' });
+pinoHttp({ customLogLevel: (req: IncomingMessage, res: ServerResponse, error: Error) => 'info' });
 pinoHttp({ reqCustomProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
 pinoHttp({ wrapSerializers: false });
 pinoHttp(new Writable());
@@ -110,7 +110,7 @@ const options: Options = {
   useLevel: canBeUndefined(rtnLevel()),
   stream: canBeUndefined({ write: (msg: string) => { return } }),
   autoLogging: canBeUndefined(autoLoggingOptions),
-  customLogLevel: canBeUndefined((res: ServerResponse, error: Error) => rtnLevel()),
+  customLogLevel: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error) => rtnLevel()),
   customReceivedMessage: canBeUndefined((req, res) => {
     res.setHeader('x-custom-header-123', 'custom-header-value');
     return `Received HTTP ${req.httpVersion} ${req.method}`;
