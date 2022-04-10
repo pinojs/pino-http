@@ -967,7 +967,7 @@ test('uses old custom request properties interface to log additional attributes'
     }
   }
   const logger = pinoHttp({
-    reqCustomProps: customPropsHandler
+    customProps: customPropsHandler
   }, dest)
 
   setup(t, logger, function (err, server) {
@@ -993,7 +993,7 @@ test('uses custom request properties to log additional attributes when response 
     }
   }
   const logger = pinoHttp({
-    reqCustomProps: customPropsHandler
+    customProps: customPropsHandler
   }, dest)
 
   setup(t, logger, function (err, server) {
@@ -1015,7 +1015,7 @@ test('uses custom request properties and a receivedMessage callback and the prop
     customReceivedMessage: function (_req, _res) {
       return message
     },
-    reqCustomProps: (req, res) => {
+    customProps: (req, res) => {
       return {
         key1: 'value1',
         key2: res.statusCode
