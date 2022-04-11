@@ -843,7 +843,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   const dest = split(JSON.parse)
   const customErrorMessage = 'Custom error message'
   const logger = pinoHttp({
-    customErrorMessage: function (err, req, res) {
+    customErrorMessage: function (req, res, err) {
       return customErrorMessage + ' ' + req.method + ' ' + err.toString()
     }
   }, dest)

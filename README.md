@@ -104,7 +104,7 @@ $ node example.js | pino-pretty
 * `stream`: same as the second parameter
 * `customReceivedMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each request received, setting "msg" property to returned string. If not set, nothing value will be used.
 * `customSuccessMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
-* `customErrorMessage`: set to a `function (err, req, res) => { /* returns message string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
+* `customErrorMessage`: set to a `function (req, res, err) => { /* returns message string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
 * `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, `responseTime` and, when using quietReqLogger, `reqId`.
 * `wrapSerializers`: when `false`, custom serializers will be passed the raw value directly. Defaults to `true`.
 * `customProps`: set to a `function (req, res) => { /* returns on object */ }` or `{ /* returns on object */ }` This function will be invoked for each request with `req` and `res` where we could pass additional properties that need to be logged outside the `req`.
@@ -163,14 +163,15 @@ const logger = require('pino-http')({
   },
 
   // Define a custom receive message
-  customReceivedMessage: function (req, _res) {
+  customReceivedMessage: function (req, res) {
     return 'request received: ' + req.method
   },
 
   // Define a custom error message
-  customErrorMessage: function (error, _req, res) {
+  customErrorMessage: function (req, res, err) {
     return 'request errored with status code: ' + res.statusCode
   },
+
   // Override attribute keys for the log object
   customAttributeKeys: {
     req: 'request',
@@ -180,7 +181,7 @@ const logger = require('pino-http')({
   },
 
   // Define additional custom request properties
-  customProps: function (req,res) {
+  customProps: function (req, res) {
     return {
       customProp: req.customProp,
       // user request-scoped data is in res.locals for express applications

@@ -110,7 +110,7 @@ function pinoLogger (opts, stream) {
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime
-      }, errorMessage(error, req, this))
+      }, errorMessage(req, this, error))
       return
     }
 

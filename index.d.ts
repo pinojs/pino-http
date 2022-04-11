@@ -31,7 +31,7 @@ export interface Options extends pino.LoggerOptions {
     customLogLevel?: ((req: IncomingMessage, res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
-    customErrorMessage?: ((error: Error, req: IncomingMessage, res: ServerResponse) => string) | undefined;
+    customErrorMessage?: ((req: IncomingMessage, res: ServerResponse, error: Error) => string) | undefined;
     customAttributeKeys?: CustomAttributeKeys | undefined;
     wrapSerializers?: boolean | undefined;
     customProps?: ((req: IncomingMessage, res: ServerResponse) => object) | undefined;
