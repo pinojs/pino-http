@@ -24,15 +24,15 @@ pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-ag
 pinoHttp({ autoLogging: { ignorePaths: ['/health'] } });
 pinoHttp({ autoLogging: { ignorePaths: [/\/health/] } });
 pinoHttp({ autoLogging: { ignorePaths: ['/health'], getPath: (req: IncomingMessage) => req.url } });
-pinoHttp({ customSuccessMessage: (req: ServerResponse) => 'Success' });
-pinoHttp({ customErrorMessage: (error: Error, res: ServerResponse) => `Error - ${error}` });
+pinoHttp({ customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => 'Success' });
+pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error) => `Error - ${error}` });
 pinoHttp({ customAttributeKeys: { req: 'req' } });
 pinoHttp({ customAttributeKeys: { res: 'res' } });
 pinoHttp({ customAttributeKeys: { err: 'err' } });
 pinoHttp({ customAttributeKeys: { responseTime: 'responseTime' } });
 pinoHttp({ customAttributeKeys: { req: 'req', res: 'res', err: 'err', responseTime: 'responseTime' } });
-pinoHttp({ customLogLevel: (res: ServerResponse, error: Error) => 'info' });
-pinoHttp({ reqCustomProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
+pinoHttp({ customLogLevel: (req: IncomingMessage, res: ServerResponse, error: Error) => 'info' });
+pinoHttp({ customProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
 pinoHttp({ wrapSerializers: false });
 pinoHttp(new Writable());
 pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'reqId' }});
@@ -110,16 +110,16 @@ const options: Options = {
   useLevel: canBeUndefined(rtnLevel()),
   stream: canBeUndefined({ write: (msg: string) => { return } }),
   autoLogging: canBeUndefined(autoLoggingOptions),
-  customLogLevel: canBeUndefined((res: ServerResponse, error: Error) => rtnLevel()),
+  customLogLevel: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error) => rtnLevel()),
   customReceivedMessage: canBeUndefined((req, res) => {
     res.setHeader('x-custom-header-123', 'custom-header-value');
     return `Received HTTP ${req.httpVersion} ${req.method}`;
   }),
-  customSuccessMessage: canBeUndefined((res: ServerResponse) => 'successMessage'),
-  customErrorMessage: canBeUndefined((error: Error, res: ServerResponse) => 'errorMessage'),
+  customSuccessMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse) => 'successMessage'),
+  customErrorMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error) => 'errorMessage'),
   customAttributeKeys: canBeUndefined(customAttributeKeys),
   wrapSerializers: canBeUndefined(rtnBool()),
-  reqCustomProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
+  customProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
   quietReqLogger: canBeUndefined(rtnBool()),
 }
 

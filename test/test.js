@@ -134,7 +134,7 @@ test('uses the log level passed in as an option', function (t) {
 test('uses the custom log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (_res, _err, _req) {
+    customLogLevel: function (_req, _res, _err) {
       return 'warn'
     }
   }, dest)
@@ -155,7 +155,7 @@ test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
     {
-      customLogLevel: function (_res, _err, _req) {
+      customLogLevel: function (_req, _res, _err) {
         return 'silent'
       }
     },
@@ -180,7 +180,7 @@ test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
 test('uses the custom invalid log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
-    customLogLevel: function (_res, _err, _req) {
+    customLogLevel: function (_req, _res, _err) {
       return 'error-log-level'
     }
   }, dest)
@@ -202,7 +202,7 @@ test('throw error if custom log level and log level passed in together', functio
   const throwFunction = function () {
     pinoHttp({
       useLevel: 'info',
-      customLogLevel: function (_res, _err, _req) {
+      customLogLevel: function (_req, _res, _err) {
         return 'warn'
       }
     }, dest)
@@ -778,8 +778,8 @@ test('uses the custom successMessage callback if passed in as an option', functi
   const dest = split(JSON.parse)
   const customResponseMessage = 'Custom response message'
   const logger = pinoHttp({
-    customSuccessMessage: function (res) {
-      return customResponseMessage
+    customSuccessMessage: function (req, res) {
+      return customResponseMessage + ' ' + req.method
     }
   }, dest)
 
@@ -789,7 +789,7 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customResponseMessage)
+    t.equal(line.msg, customResponseMessage + ' GET')
     t.end()
   })
 })
@@ -843,8 +843,8 @@ test('uses the custom errorMessage callback if passed in as an option', function
   const dest = split(JSON.parse)
   const customErrorMessage = 'Custom error message'
   const logger = pinoHttp({
-    customErrorMessage: function (err, res) {
-      return customErrorMessage + ' ' + err.toString()
+    customErrorMessage: function (req, res, err) {
+      return customErrorMessage + ' ' + req.method + ' ' + err.toString()
     }
   }, dest)
 
@@ -854,7 +854,7 @@ test('uses the custom errorMessage callback if passed in as an option', function
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg.indexOf(customErrorMessage), 0)
+    t.equal(line.msg.indexOf(customErrorMessage + ' GET'), 0)
     t.end()
   })
 })
@@ -967,7 +967,7 @@ test('uses old custom request properties interface to log additional attributes'
     }
   }
   const logger = pinoHttp({
-    reqCustomProps: customPropsHandler
+    customProps: customPropsHandler
   }, dest)
 
   setup(t, logger, function (err, server) {
@@ -993,7 +993,7 @@ test('uses custom request properties to log additional attributes when response 
     }
   }
   const logger = pinoHttp({
-    reqCustomProps: customPropsHandler
+    customProps: customPropsHandler
   }, dest)
 
   setup(t, logger, function (err, server) {
@@ -1015,7 +1015,7 @@ test('uses custom request properties and a receivedMessage callback and the prop
     customReceivedMessage: function (_req, _res) {
       return message
     },
-    reqCustomProps: (req, res) => {
+    customProps: (req, res) => {
       return {
         key1: 'value1',
         key2: res.statusCode

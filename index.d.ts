@@ -28,13 +28,13 @@ export interface Options extends pino.LoggerOptions {
     useLevel?: pino.LevelWithSilent | undefined;
     stream?: pino.DestinationStream | undefined;
     autoLogging?: boolean | AutoLoggingOptions | undefined;
-    customLogLevel?: ((res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
+    customLogLevel?: ((req: IncomingMessage, res: ServerResponse, error: Error) => pino.LevelWithSilent) | undefined;
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
-    customSuccessMessage?: ((res: ServerResponse) => string) | undefined;
-    customErrorMessage?: ((error: Error, res: ServerResponse) => string) | undefined;
+    customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
+    customErrorMessage?: ((req: IncomingMessage, res: ServerResponse, error: Error) => string) | undefined;
     customAttributeKeys?: CustomAttributeKeys | undefined;
     wrapSerializers?: boolean | undefined;
-    reqCustomProps?: ((req: IncomingMessage, res: ServerResponse) => object) | undefined;
+    customProps?: ((req: IncomingMessage, res: ServerResponse) => object) | undefined;
     quietReqLogger?: boolean | undefined;
 }
 

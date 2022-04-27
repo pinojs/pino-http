@@ -23,7 +23,7 @@ function pinoLogger (opts, stream) {
   const responseTimeKey = opts.customAttributeKeys.responseTime || 'responseTime'
   delete opts.customAttributeKeys
 
-  const customProps = opts.customProps || opts.reqCustomProps || undefined
+  const customProps = opts.customProps || undefined
 
   opts.wrapSerializers = 'wrapSerializers' in opts ? opts.wrapSerializers : true
   if (opts.wrapSerializers) {
@@ -53,7 +53,7 @@ function pinoLogger (opts, stream) {
   }
 
   function getLogLevelFromCustomLogLevel (customLogLevel, useLevel, res, err, req) {
-    return customLogLevel ? getValidLogLevel(customLogLevel(res, err, req), useLevel) : useLevel
+    return customLogLevel ? getValidLogLevel(customLogLevel(req, res, err), useLevel) : useLevel
   }
 
   const useLevel = getValidLogLevel(opts.useLevel)
@@ -110,14 +110,14 @@ function pinoLogger (opts, stream) {
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime
-      }, errorMessage(error, this))
+      }, errorMessage(req, this, error))
       return
     }
 
     log[level]({
       [resKey]: this,
       [responseTimeKey]: responseTime
-    }, successMessage(this))
+    }, successMessage(req, this))
   }
 
   function loggingMiddleware (req, res, next) {
