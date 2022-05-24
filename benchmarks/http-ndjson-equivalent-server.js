@@ -10,8 +10,8 @@ const hostname = require('os').hostname()
 function handle (req, res) {
   res.end('hello world')
   const opts = {
-    pid: pid,
-    hostname: hostname,
+    pid,
+    hostname,
     level: 30,
     res: {
       statusCode: res.statusCode,

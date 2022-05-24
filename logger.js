@@ -6,6 +6,7 @@ const getCallerFile = require('get-caller-file')
 const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
 const reqObject = Symbol('reqObject')
+const warning = require('./deprecations')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -67,7 +68,13 @@ function pinoLogger (opts, stream) {
   const autoLogging = (opts.autoLogging !== false)
   const autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   const autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
+  if (opts.autoLogging !== undefined && opts.autoLogging.ignorePaths !== undefined) {
+    warning.emit('PINOHTTP_DEP001')
+  }
   const autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
+  if (opts.autoLogging !== undefined && opts.autoLogging.getPath !== undefined) {
+    warning.emit('PINOHTTP_DEP002')
+  }
   delete opts.autoLogging
 
   const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined

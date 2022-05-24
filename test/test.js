@@ -242,7 +242,7 @@ test('uses a custom genReqId function', function (t) {
     return idToTest
   }
 
-  const logger = pinoHttp({ genReqId: genReqId }, dest)
+  const logger = pinoHttp({ genReqId }, dest)
   setup(t, logger, function (err, server) {
     t.error(err)
     doGet(server)
@@ -368,6 +368,40 @@ test('no auto logging with autoLogging set to false', function (t) {
   })
 })
 
+test('should warn upon use of autLogging.ignorePaths', test => {
+  test.plan(1)
+
+  process.once('warning', warning => {
+    test.equal(warning.code, 'PINOHTTP_DEP001')
+    test.end()
+  })
+
+  pinoHttp({
+    autoLogging: {
+      ignorePaths: ['/ignorethis']
+    }
+  })
+})
+
+test('should warn upon use of autLogging.getPath', test => {
+  test.plan(1)
+
+  process.once('warning', warning => {
+    test.equal(warning.code, 'PINOHTTP_DEP002')
+    test.end()
+  })
+
+  pinoHttp({
+    autoLogging: {
+      getPath: req => req.url
+    }
+  })
+})
+
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths is removed from code base
+ */
 test('no auto logging with autoLogging set to true and path ignored', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
@@ -386,6 +420,10 @@ test('no auto logging with autoLogging set to true and path ignored', function (
   })
 })
 
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths is removed from code base
+ */
 test('auto logging with autoLogging set to true and path not ignored', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
@@ -405,6 +443,10 @@ test('auto logging with autoLogging set to true and path not ignored', function 
   })
 })
 
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths & autoLogging.getPath are removed from code base
+ */
 test('no auto logging with autoLogging set to true and getPath result is ignored', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
@@ -426,6 +468,10 @@ test('no auto logging with autoLogging set to true and getPath result is ignored
   })
 })
 
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths & autoLogging.getPath are removed from code base
+ */
 test('auto logging with autoLogging set to true and getPath result is not ignored', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
@@ -448,6 +494,10 @@ test('auto logging with autoLogging set to true and getPath result is not ignore
   })
 })
 
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths & autoLogging.getPath are removed from code base
+ */
 test('no auto logging with autoLogging set to use regular expressions. result is ignored', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
@@ -469,6 +519,47 @@ test('no auto logging with autoLogging set to use regular expressions. result is
   dest.on('data', function (line) {
     t.pass('path should log')
     t.end()
+  })
+})
+
+/**
+ * @deprecated since version 7.1.0
+ * TODO: remove test when autoLogging.ignorePaths & autoLogging.getPath are removed from code base
+ */
+test('autoLogging set to true and path ignored', test => {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    autoLogging: {
+      ignore: req => req.url === '/ignorethis'
+    }
+  }, dest)
+
+  setup(test, logger, (err, server) => {
+    test.error(err)
+    doGet(server, '/ignorethis', () => {
+      const line = dest.read()
+      test.equal(line, null)
+      test.end()
+    })
+  })
+})
+
+test('autoLogging set to true and path not ignored', test => {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    autoLogging: {
+      ignore: req => req.url === '/ignorethis'
+    }
+  }, dest)
+
+  setup(test, logger, function (err, server) {
+    test.error(err)
+    doGet(server, '/shouldlogthis')
+  })
+
+  dest.on('data', function (line) {
+    test.pass('path should log')
+    test.end()
   })
 })
 
@@ -533,7 +624,7 @@ test('support a custom instance with custom genReqId function', function (t) {
 
   const logger = pinoHttp({
     logger: pino(dest),
-    genReqId: genReqId
+    genReqId
   })
 
   setup(t, logger, function (err, server) {
