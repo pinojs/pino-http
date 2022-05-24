@@ -2,6 +2,8 @@
 
 const test = require('tap').test
 const http = require('http')
+const net = require('net')
+const stream = require('stream')
 const pinoHttp = require('../')
 const pino = require('pino')
 const split = require('split2')
@@ -12,6 +14,7 @@ const noop = function () {}
 
 const DEFAULT_REQUEST_RECEIVED_MSG = 'request received'
 const DEFAULT_REQUEST_COMPLETED_MSG = 'request completed'
+const DEFAULT_REQUEST_ABORTED_MSG = 'request aborted'
 const DEFAULT_REQUEST_ERROR_MSG = 'request errored'
 
 function setup (t, logger, cb, handler, next) {
@@ -350,6 +353,48 @@ test('responseTime for request emitting error event', function (t) {
 
   dest.on('data', function (line) {
     t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.end()
+  })
+})
+
+test('log requests aborted during payload', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+
+  function handle (req, res) {
+    logger(req, res)
+
+    const read = new stream.Readable({
+      read () {
+        if (this.called) {
+          return
+        }
+
+        this.called = true
+        this.push('delayed')
+      }
+    })
+
+    read.pipe(res)
+  }
+
+  function listen (err, server) {
+    t.error(err)
+
+    const client = net.connect(server.address().port, server.address().address, () => {
+      client.write('GET /delayed HTTP/1.1\r\n\r\n')
+    })
+
+    client.on('data', (data) => {
+      client.destroy()
+    })
+  }
+
+  setup(t, logger, listen, handle)
+
+  dest.on('data', function (line) {
+    t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
     t.end()
   })
 })

@@ -78,7 +78,7 @@ function pinoLogger (opts, stream) {
   delete opts.autoLogging
 
   const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
-  const successMessage = opts.customSuccessMessage || function () { return 'request completed' }
+  const successMessage = opts.customSuccessMessage || function (req, res) { return res.writableEnded ? 'request completed' : 'request aborted' }
   const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
@@ -91,6 +91,7 @@ function pinoLogger (opts, stream) {
   return loggingMiddleware
 
   function onResFinished (err) {
+    this.removeListener('close', onResFinished)
     this.removeListener('error', onResFinished)
     this.removeListener('finish', onResFinished)
 
@@ -178,6 +179,7 @@ function pinoLogger (opts, stream) {
           req.log[level](receivedMessage(req, res))
         }
 
+        res.on('close', onResFinished)
         res.on('finish', onResFinished)
       }
 
