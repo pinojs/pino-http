@@ -381,7 +381,7 @@ test('log requests aborted during payload', function (t) {
   function listen (err, server) {
     t.error(err)
 
-    const client = net.connect(server.address().port, () => {
+    const client = net.connect(server.address().port, server.address().address, () => {
       client.write('GET /delayed HTTP/1.1\r\n\r\n')
     })
 
