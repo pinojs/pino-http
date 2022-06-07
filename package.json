@@ -4,6 +4,7 @@
   "description": "High-speed HTTP logger for Node.js",
   "main": "src/logger.js",
   "types": "src/index.d.ts",
+  "files": [ "src" ],
   "tsd": {
     "directory": "tests"
   },
