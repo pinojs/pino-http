@@ -9,7 +9,7 @@
     "moduleResolution": "node",
   },
   "include": [
-    "./*.test-d.ts",
-    "./*.d.ts"
+    "src/index.d.ts", 
+    "tests/import.test-d.ts" 
   ]
 }

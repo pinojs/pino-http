@@ -1,10 +1,10 @@
 import { expectType } from 'tsd';
 
 import pino from 'pino';
-import pinoHttp, { HttpLogger } from '.';
-import { pinoHttp as pinoHttpNamed } from '.';
-import * as pinoHttpStar from '.';
-import pinoHttpCjsImport = require ('.');
+import pinoHttp, { HttpLogger } from '../src';
+import { pinoHttp as pinoHttpNamed } from '../src';
+import * as pinoHttpStar from '../src';
+import pinoHttpCjsImport = require ('../src');
 const pinoHttpCjs = require('.');
 const { pinoHttp: pinoHttpCjsNamed } = require('.')
 
