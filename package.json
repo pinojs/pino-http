@@ -4,6 +4,9 @@
   "description": "High-speed HTTP logger for Node.js",
   "main": "src/logger.js",
   "types": "src/index.d.ts",
+  "tsd": {
+    "directory": "tests"
+  },
   "dependencies": {
     "fast-url-parser": "^1.1.3",
     "get-caller-file": "^2.0.5",
