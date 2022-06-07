@@ -3,7 +3,7 @@
 const http = require('http')
 const server = http.createServer(handle)
 
-const logger = require('../')({
+const logger = require('../src/logger')({
   extreme: true
 })
 

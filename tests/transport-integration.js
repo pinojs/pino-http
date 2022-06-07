@@ -9,7 +9,7 @@ const { spawn } = require('child_process')
 test('custom format transport', function (t) {
   t.plan(2)
 
-  const ls = spawn('node', [join(__dirname, '../example-custom-format.js')], {
+  const ls = spawn('node', [join(__dirname, '../examples/example-custom-format.js')], {
     cwd: process.cwd()
   })
   ls.stdout.setEncoding('utf8')
