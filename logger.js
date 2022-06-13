@@ -42,11 +42,10 @@ function pinoLogger (opts, stream) {
     throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
   }
 
-  const LOG_LEVEL_STRS = ['trace', 'debug', 'info', 'warn', 'error', 'fatal', 'silent']
   function getValidLogLevel (level, defaultValue = 'info') {
     if (level && typeof level === 'string') {
       const logLevel = level.trim().toLowerCase()
-      if (LOG_LEVEL_STRS.includes(logLevel) === true) {
+      if (validLogLevels.includes(logLevel) === true) {
         return logLevel
       }
     }
@@ -57,9 +56,7 @@ function pinoLogger (opts, stream) {
     return customLogLevel ? getValidLogLevel(customLogLevel(req, res, err), useLevel) : useLevel
   }
 
-  const useLevel = getValidLogLevel(opts.useLevel)
   const customLogLevel = opts.customLogLevel
-  delete opts.useLevel
   delete opts.customLogLevel
 
   const theStream = opts.stream || stream
@@ -86,6 +83,11 @@ function pinoLogger (opts, stream) {
   const quietReqLogger = !!opts.quietReqLogger
 
   const logger = wrapChild(opts, theStream)
+
+  const validLogLevels = Object.keys(logger.levels.values).concat('silent')
+  const useLevel = getValidLogLevel(opts.useLevel)
+  delete opts.useLevel
+
   const genReqId = reqIdGenFactory(opts.genReqId)
   loggingMiddleware.logger = logger
   return loggingMiddleware
