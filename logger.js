@@ -3,10 +3,8 @@
 const pino = require('pino')
 const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
-const URL = require('fast-url-parser')
 const startTime = Symbol('startTime')
 const reqObject = Symbol('reqObject')
-const warning = require('./deprecations')
 
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
@@ -64,14 +62,6 @@ function pinoLogger (opts, stream) {
 
   const autoLogging = (opts.autoLogging !== false)
   const autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
-  const autoLoggingIgnorePaths = (opts.autoLogging && opts.autoLogging.ignorePaths) ? opts.autoLogging.ignorePaths : []
-  if (opts.autoLogging !== undefined && opts.autoLogging.ignorePaths !== undefined) {
-    warning.emit('PINOHTTP_DEP001')
-  }
-  const autoLoggingGetPath = opts.autoLogging && opts.autoLogging.getPath ? opts.autoLogging.getPath : null
-  if (opts.autoLogging !== undefined && opts.autoLogging.getPath !== undefined) {
-    warning.emit('PINOHTTP_DEP002')
-  }
   delete opts.autoLogging
 
   const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
@@ -151,25 +141,6 @@ function pinoLogger (opts, stream) {
     res[reqObject] = req
 
     if (autoLogging) {
-      if (autoLoggingIgnorePaths.length) {
-        let url
-        if (autoLoggingGetPath) {
-          url = URL.parse(autoLoggingGetPath(req))
-        } else {
-          url = URL.parse(req.url)
-        }
-
-        const isPathIgnored = autoLoggingIgnorePaths.find(ignorePath => {
-          if (ignorePath instanceof RegExp) {
-            return ignorePath.test(url.pathname)
-          }
-
-          return ignorePath === url.pathname
-        })
-
-        shouldLogSuccess = !isPathIgnored
-      }
-
       if (autoLoggingIgnore !== null && shouldLogSuccess === true) {
         const isIgnored = autoLoggingIgnore !== null && autoLoggingIgnore(req)
         shouldLogSuccess = !isIgnored

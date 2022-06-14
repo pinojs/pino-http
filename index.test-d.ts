@@ -1,12 +1,11 @@
 
 /// <reference path="index.d.ts"/>
 
-import { Writable } from 'stream';
-import { IncomingMessage, ServerResponse } from 'http';
+import { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { Socket } from 'net';
 import pino from 'pino';
-import pinoHttp, { HttpLogger, ReqId, Options, GenReqId, AutoLoggingOptions, CustomAttributeKeys, StdSerializers, startTime } from '.';
-import { RequestListener } from 'http';
+import { Writable } from 'stream';
+import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers } from '.';
 
 const logger = pino();
 
@@ -21,9 +20,6 @@ pinoHttp({ prettyPrint: true }); // deprecated but still present in pino.
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
 pinoHttp({ autoLogging: false });
 pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
-pinoHttp({ autoLogging: { ignorePaths: ['/health'] } });
-pinoHttp({ autoLogging: { ignorePaths: [/\/health/] } });
-pinoHttp({ autoLogging: { ignorePaths: ['/health'], getPath: (req: IncomingMessage) => req.url } });
 pinoHttp({ customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => 'Success' });
 pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error) => `Error - ${error}` });
 pinoHttp({ customAttributeKeys: { req: 'req' } });
@@ -87,8 +83,6 @@ const autoLoggingOptions = (() => {
   if (rand()) {
     rtn = {
       ignore: canBeUndefined(() => true),
-      ignorePaths: canBeUndefined(['str', /regex/, new RegExp('regex', 'g')]),
-      getPath: canBeUndefined(() => '/path'),
     };
   } else if (rand()) {
     rtn = false;
