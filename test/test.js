@@ -154,6 +154,57 @@ test('uses the custom log level passed in as an option', function (t) {
   })
 })
 
+test('uses the log level passed in as an option, where the level is a custom one', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(
+    {
+      customLevels: {
+        custom: 25
+      },
+      useLevel: 'custom',
+      level: 'custom'
+    },
+    dest
+  )
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 25, 'level')
+    t.notOk(line.useLevel, 'useLevel not forwarded')
+    t.end()
+  })
+})
+
+test('uses the custom log level passed in as an option, where the level itself is also a custom one', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(
+    {
+      customLevels: {
+        custom: 35
+      },
+      customLogLevel: function (_req, _res, _err) {
+        return 'custom'
+      }
+    },
+    dest
+  )
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 35, 'level')
+    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
+    t.end()
+  })
+})
+
 test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
@@ -684,6 +735,30 @@ test('support a custom instance with custom genReqId function', function (t) {
     t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
     t.equal(line.req.method, 'GET', 'method is get')
     t.equal(line.res.statusCode, 200, 'statusCode is 200')
+    t.end()
+  })
+})
+
+test('support a custom instance with one of its customLevels as useLevel', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    logger: pino({
+      customLevels: {
+        custom: 25
+      }
+    }, dest),
+    useLevel: 'custom',
+    level: 'custom'
+  })
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.level, 25, 'level')
+    t.notOk(line.useLevel, 'useLevel not forwarded')
     t.end()
   })
 })
