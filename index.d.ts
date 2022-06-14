@@ -44,26 +44,6 @@ export interface GenReqId {
 
 export interface AutoLoggingOptions {
     ignore?: ((req: IncomingMessage) => boolean);
-    /**
-     * @deprecated since version 7.1.0, use autologging.ignore instead
-     * @example
-     * const logger = pinoHttp({
-     *   autoLogging: {
-     *     ignore: req => req.url === '/ignorethis'
-     *   }
-     * })
-     */
-    ignorePaths?: Array<string | RegExp> | undefined;
-    /**
-     * @deprecated since version 7.1.0, use autologging.ignore instead
-     * @example
-     * const logger = pinoHttp({
-     *   autoLogging: {
-     *     ignore: req => req.originalUrl === '/ignorethis'
-     *   }
-     * })
-     */
-    getPath?: ((req: IncomingMessage) => string | undefined) | undefined;
 }
 
 export interface CustomAttributeKeys {
@@ -81,7 +61,7 @@ export interface StdSerializers {
 }
 
 export default PinoHttp;
-export { PinoHttp as pinoHttp }
+export { PinoHttp as pinoHttp };
 
 export const startTime: unique symbol;
 
