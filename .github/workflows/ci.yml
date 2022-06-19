@@ -32,13 +32,13 @@ jobs:
         uses: actions/dependency-review-action@v1
 
   test:
+    name: Test
     runs-on: ubuntu-latest
     permissions:
       contents: read
     strategy:
       matrix:
         node: [14, 16, 18]
-    name: Node ${{ matrix.node }}
     steps:
       - name: Check out repo
         uses: actions/checkout@v3
