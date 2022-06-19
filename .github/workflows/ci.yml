@@ -10,8 +10,28 @@ on:
         - 'docs/**'
         - '*.md'
 
+# This allows a subsequently queued workflow run to interrupt previous runs
+concurrency:
+  group: "${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}"
+  cancel-in-progress: true
+
 jobs:
-  build:
+  dependency-review:
+    name: Dependency Review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v1
+
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,27 +40,38 @@ jobs:
         node: [14, 16, 18]
     name: Node ${{ matrix.node }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Setup node
+      - name: Check out repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Setup Node ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node }}
+          node-version: ${{ matrix.node-version }}
+
       - name: Restore cached dependencies
         uses: actions/cache@v3
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('package.json') }}
+
       - name: Install dependencies
-        run: npm install
+        run: npm i --ignore-scripts
+
       - name: Run tests
         run: npm test
 
   automerge:
-    needs: build
-    runs-on: ubuntu-latest
+    name: Automerge Dependabot PRs
+    if: >
+        github.event_name == 'pull_request' &&
+        github.event.pull_request.user.login == 'dependabot[bot]'
+    needs: test
     permissions:
       pull-requests: write
       contents: write
+    runs-on: ubuntu-latest
     steps:
       - uses: fastify/github-action-merge-dependabot@v3
         with:
