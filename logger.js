@@ -64,8 +64,13 @@ function pinoLogger (opts, stream) {
   const autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   delete opts.autoLogging
 
+  const onRequestReceivedObject = opts.customReceivedObject && typeof opts.customReceivedObject === 'function' ? opts.customReceivedObject : undefined
   const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
+
+  const onRequestSuccessObject = opts.customSuccessObject && typeof opts.customSuccessObject === 'function' ? opts.customSuccessObject : function (req, res, successObject) { return successObject }
   const successMessage = opts.customSuccessMessage || function (req, res) { return res.writableEnded ? 'request completed' : 'request aborted' }
+
+  const onRequestErrorObject = opts.customErrorObject && typeof opts.customErrorObject === 'function' ? opts.customErrorObject : function (req, res, error, errorObject) { return errorObject }
   const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
@@ -106,18 +111,19 @@ function pinoLogger (opts, stream) {
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
-      log[level]({
+      log[level](onRequestErrorObject(req, this, error, {
         [resKey]: this,
         [errKey]: error,
         [responseTimeKey]: responseTime
-      }, errorMessage(req, this, error))
+      }), errorMessage(req, this, error))
+
       return
     }
 
-    log[level]({
+    log[level](onRequestSuccessObject(req, this, {
       [resKey]: this,
       [responseTimeKey]: responseTime
-    }, successMessage(req, this))
+    }), successMessage(req, this))
   }
 
   function loggingMiddleware (req, res, next) {
@@ -147,9 +153,20 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
-        if (receivedMessage !== undefined) {
+        const shouldLogReceived = receivedMessage !== undefined || onRequestReceivedObject !== undefined
+
+        if (shouldLogReceived) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
-          req.log[level](receivedMessage(req, res))
+          const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : undefined
+          const receivedStringResult = receivedMessage !== undefined ? receivedMessage(req, res) : undefined
+
+          if (receivedObjectResult && receivedStringResult) {
+            req.log[level](receivedObjectResult, receivedStringResult)
+          } else if (receivedStringResult) {
+            req.log[level](receivedStringResult)
+          } else {
+            req.log[level](receivedObjectResult)
+          }
         }
 
         res.on('close', onResFinished)
