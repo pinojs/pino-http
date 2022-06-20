@@ -8,7 +8,7 @@
     "fast-url-parser": "^1.1.3",
     "get-caller-file": "^2.0.5",
     "pino": "^8.0.0",
-    "pino-std-serializers": "^5.0.0",
+    "pino-std-serializers": "^6.0.0",
     "process-warning": "^2.0.0"
   },
   "devDependencies": {
