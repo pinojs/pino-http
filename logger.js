@@ -6,6 +6,30 @@ const getCallerFile = require('get-caller-file')
 const startTime = Symbol('startTime')
 const reqObject = Symbol('reqObject')
 
+function GetFunctionOrDefault (value, defaultValue) {
+  if (value && typeof value === 'function') {
+    return value
+  }
+
+  return defaultValue
+}
+
+function DefaultSuccessfulRequestObjectProvider (req, res, successObject) {
+  return successObject
+}
+
+function DefaultFailedRequestObjectProvider (req, res, error, errorObject) {
+  return errorObject
+}
+
+function DefaultFailedRequestMessageProvider () {
+  return 'request errored'
+}
+
+function DefaultSuccessfulRequestMessageProvider (req, res) {
+  return res.writableEnded ? 'request completed' : 'request aborted'
+}
+
 function pinoLogger (opts, stream) {
   if (opts && opts._writableState) {
     stream = opts
@@ -64,14 +88,15 @@ function pinoLogger (opts, stream) {
   const autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   delete opts.autoLogging
 
-  const onRequestReceivedObject = opts.customReceivedObject && typeof opts.customReceivedObject === 'function' ? opts.customReceivedObject : undefined
-  const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
+  const onRequestReceivedObject = GetFunctionOrDefault(opts.customReceivedObject, undefined)
+  const receivedMessage = GetFunctionOrDefault(opts.customReceivedMessage, undefined)
 
-  const onRequestSuccessObject = opts.customSuccessObject && typeof opts.customSuccessObject === 'function' ? opts.customSuccessObject : function (req, res, successObject) { return successObject }
-  const successMessage = opts.customSuccessMessage || function (req, res) { return res.writableEnded ? 'request completed' : 'request aborted' }
+  const onRequestSuccessObject = GetFunctionOrDefault(opts.customSuccessObject, DefaultSuccessfulRequestObjectProvider)
+  const successMessage = GetFunctionOrDefault(opts.customSuccessMessage, DefaultSuccessfulRequestMessageProvider)
 
-  const onRequestErrorObject = opts.customErrorObject && typeof opts.customErrorObject === 'function' ? opts.customErrorObject : function (req, res, error, errorObject) { return errorObject }
-  const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
+  const onRequestErrorObject = GetFunctionOrDefault(opts.customErrorObject, DefaultFailedRequestObjectProvider)
+  const errorMessage = GetFunctionOrDefault(opts.customErrorMessage, DefaultFailedRequestMessageProvider)
+
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
 
@@ -111,19 +136,25 @@ function pinoLogger (opts, stream) {
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
-      log[level](onRequestErrorObject(req, this, error, {
-        [resKey]: this,
-        [errKey]: error,
-        [responseTimeKey]: responseTime
-      }), errorMessage(req, this, error))
+      log[level](
+        onRequestErrorObject(req, this, error, {
+          [resKey]: this,
+          [errKey]: error,
+          [responseTimeKey]: responseTime
+        }),
+        errorMessage(req, this, error)
+      )
 
       return
     }
 
-    log[level](onRequestSuccessObject(req, this, {
-      [resKey]: this,
-      [responseTimeKey]: responseTime
-    }), successMessage(req, this))
+    log[level](
+      onRequestSuccessObject(req, this, {
+        [resKey]: this,
+        [responseTimeKey]: responseTime
+      }),
+      successMessage(req, this)
+    )
   }
 
   function loggingMiddleware (req, res, next) {
@@ -157,16 +188,10 @@ function pinoLogger (opts, stream) {
 
         if (shouldLogReceived) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
-          const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : undefined
+          const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : {}
           const receivedStringResult = receivedMessage !== undefined ? receivedMessage(req, res) : undefined
 
-          if (receivedObjectResult && receivedStringResult) {
-            req.log[level](receivedObjectResult, receivedStringResult)
-          } else if (receivedStringResult) {
-            req.log[level](receivedStringResult)
-          } else {
-            req.log[level](receivedObjectResult)
-          }
+          req.log[level](receivedObjectResult, receivedStringResult)
         }
 
         res.on('close', onResFinished)
