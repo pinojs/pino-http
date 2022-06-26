@@ -32,6 +32,9 @@ export interface Options extends pino.LoggerOptions {
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
     customErrorMessage?: ((req: IncomingMessage, res: ServerResponse, error: Error) => string) | undefined;
+    customReceivedObject?: ((req: IncomingMessage, res: ServerResponse, val?: any) => any) | undefined;
+    customSuccessObject?: ((req: IncomingMessage, res: ServerResponse, val: any) => any) | undefined;
+    customErrorObject?: ((req: IncomingMessage, res: ServerResponse, error: Error, val: any) => string) | undefined;
     customAttributeKeys?: CustomAttributeKeys | undefined;
     wrapSerializers?: boolean | undefined;
     customProps?: ((req: IncomingMessage, res: ServerResponse) => object) | undefined;

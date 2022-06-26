@@ -101,8 +101,11 @@ $ node example.js | pino-pretty
 * `autoLogging.ignore`: set to a `function (req) => { /* returns boolean */ }`. Useful for defining logic based on req properties (such as a user-agent header) to ignore successful requests.
 * `stream`: same as the second parameter
 * `customReceivedMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each request received, setting "msg" property to returned string. If not set, nothing value will be used.
+* `customReceivedObject`: set to a `function (req, res, loggableObject) => { /* returns loggable object */ }` This function will be invoked at each request received, replacing the base loggable received object. When set, it is up to the reponsibility of the caller to merge with the `loggableObject` parameter. If not set, default value will be used.
 * `customSuccessMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each successful response, setting "msg" property to returned string. If not set, default value will be used.
+* `customSuccessObject`: set to a `function (req, res, loggableObject) => { /* returns loggable object */ }` This function will be invoked at each successful response, replacing the base loggable success object. When set, it is up to the reponsibility of the caller to merge with the `loggableObject` parameter. If not set, default value will be used.
 * `customErrorMessage`: set to a `function (req, res, err) => { /* returns message string */ }` This function will be invoked at each failed response, setting "msg" property to returned string. If not set, default value will be used.
+* `customErrorObject`: set to a `function (req, res, err, loggableObject) => { /* returns message string */ }` This function will be invoked at each failed response, the base loggable error object. When set, it is up to the reponsibility of the caller to merge with the `loggableObject` parameter. If not set, default value will be used.
 * `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, `responseTime` and, when using quietReqLogger, `reqId`.
 * `wrapSerializers`: when `false`, custom serializers will be passed the raw value directly. Defaults to `true`.
 * `customProps`: set to a `function (req, res) => { /* returns on object */ }` or `{ /* returns on object */ }` This function will be invoked for each request with `req` and `res` where we could pass additional properties that need to be logged outside the `req`.
@@ -195,6 +198,53 @@ function handle (req, res) {
 }
 
 server.listen(3000)
+```
+
+##### Structured Object Hooks
+
+It is possible to override the default structured object with your own. The hook is provided with the
+pino-http base object so that you can merge in your own keys. 
+
+This is useful in scenarios where you want to augment core pino-http logger object with your own event 
+labels.
+
+> If you simply want to change the message which is logged then check out the custom[Received|Error|Success]Message 
+> hooks e.g. customReceivedMessage
+
+```js
+const logger = require('pino-http')({
+  //... remaining config omitted for brevity
+  customReceivedObject: (req, res, val) => {
+    return {
+      category: 'ApplicationEvent',
+      eventCode: 'REQUEST_RECEIVED'
+    };
+  },
+
+  customSuccessObject: (req, res, val) => {
+    return {
+      ...val,
+      category: 'ApplicationEvent',
+      eventCode:
+        res.statusCode < 300
+          ? 'REQUEST_PROCESSED'
+          : 'REQUEST_FAILED'
+    };
+  },
+
+  customErrorObject: (req, res, error, val) => {
+    const store = storage.getStore();
+    const formattedBaggage = convertBaggageToObject(store?.baggage);
+
+    return {
+      ...val,
+      category: 'ApplicationEvent',
+      eventCode: 'REQUEST_FAILED'
+    };
+  }
+
+  // ...remaining config omitted for brevity
+})
 ```
 
 ##### PinoHttp.logger (P.Logger)

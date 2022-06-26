@@ -64,9 +64,15 @@ function pinoLogger (opts, stream) {
   const autoLoggingIgnore = opts.autoLogging && opts.autoLogging.ignore ? opts.autoLogging.ignore : null
   delete opts.autoLogging
 
-  const receivedMessage = opts.customReceivedMessage && typeof opts.customReceivedMessage === 'function' ? opts.customReceivedMessage : undefined
-  const successMessage = opts.customSuccessMessage || function (req, res) { return res.writableEnded ? 'request completed' : 'request aborted' }
-  const errorMessage = opts.customErrorMessage || function () { return 'request errored' }
+  const onRequestReceivedObject = getFunctionOrDefault(opts.customReceivedObject, undefined)
+  const receivedMessage = getFunctionOrDefault(opts.customReceivedMessage, undefined)
+
+  const onRequestSuccessObject = getFunctionOrDefault(opts.customSuccessObject, defaultSuccessfulRequestObjectProvider)
+  const successMessage = getFunctionOrDefault(opts.customSuccessMessage, defaultSuccessfulRequestMessageProvider)
+
+  const onRequestErrorObject = getFunctionOrDefault(opts.customErrorObject, defaultFailedRequestObjectProvider)
+  const errorMessage = getFunctionOrDefault(opts.customErrorMessage, defaultFailedRequestMessageProvider)
+
   delete opts.customSuccessfulMessage
   delete opts.customErroredMessage
 
@@ -106,18 +112,25 @@ function pinoLogger (opts, stream) {
     if (err || this.err || this.statusCode >= 500) {
       const error = err || this.err || new Error('failed with status code ' + this.statusCode)
 
-      log[level]({
-        [resKey]: this,
-        [errKey]: error,
-        [responseTimeKey]: responseTime
-      }, errorMessage(req, this, error))
+      log[level](
+        onRequestErrorObject(req, this, error, {
+          [resKey]: this,
+          [errKey]: error,
+          [responseTimeKey]: responseTime
+        }),
+        errorMessage(req, this, error)
+      )
+
       return
     }
 
-    log[level]({
-      [resKey]: this,
-      [responseTimeKey]: responseTime
-    }, successMessage(req, this))
+    log[level](
+      onRequestSuccessObject(req, this, {
+        [resKey]: this,
+        [responseTimeKey]: responseTime
+      }),
+      successMessage(req, this)
+    )
   }
 
   function loggingMiddleware (req, res, next) {
@@ -147,9 +160,14 @@ function pinoLogger (opts, stream) {
       }
 
       if (shouldLogSuccess) {
-        if (receivedMessage !== undefined) {
+        const shouldLogReceived = receivedMessage !== undefined || onRequestReceivedObject !== undefined
+
+        if (shouldLogReceived) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)
-          req.log[level](receivedMessage(req, res))
+          const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : {}
+          const receivedStringResult = receivedMessage !== undefined ? receivedMessage(req, res) : undefined
+
+          req.log[level](receivedObjectResult, receivedStringResult)
         }
 
         res.on('close', onResFinished)
@@ -194,6 +212,30 @@ function reqIdGenFactory (func) {
   return function genReqId (req) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
+}
+
+function getFunctionOrDefault (value, defaultValue) {
+  if (value && typeof value === 'function') {
+    return value
+  }
+
+  return defaultValue
+}
+
+function defaultSuccessfulRequestObjectProvider (req, res, successObject) {
+  return successObject
+}
+
+function defaultFailedRequestObjectProvider (req, res, error, errorObject) {
+  return errorObject
+}
+
+function defaultFailedRequestMessageProvider () {
+  return 'request errored'
+}
+
+function defaultSuccessfulRequestMessageProvider (req, res) {
+  return res.writableEnded ? 'request completed' : 'request aborted'
 }
 
 module.exports = pinoLogger

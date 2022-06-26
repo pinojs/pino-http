@@ -829,6 +829,25 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 })
 
+test('uses the custom successObject callback if passed in as an option', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customSuccessObject: function (req, res, val) {
+      return { ...val, label: req.method + ' customSuccessObject' }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.label, 'GET customSuccessObject')
+    t.end()
+  })
+})
+
 test('uses the custom receivedMessage callback if passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
@@ -848,6 +867,57 @@ test('uses the custom receivedMessage callback if passed in as an option', funct
       return
     }
     t.equal(line.msg, message)
+    t.end()
+  })
+})
+
+test('uses the custom receivedObject callback if passed in as an option', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customReceivedObject: function (req, val) {
+      return { label: req.method + ' customReceivedObject' }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    if (line.label === undefined) {
+      return
+    }
+
+    t.equal(line.label, 'GET customReceivedObject')
+    t.end()
+  })
+})
+
+test('uses the custom receivedObject + receivedMessage callback if passed in as an option', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customReceivedMessage: function (_req, _res) {
+      return DEFAULT_REQUEST_RECEIVED_MSG
+    },
+
+    customReceivedObject: function (req, val) {
+      return { label: req.method + ' customReceivedObject' }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    if (line.label === undefined && line.msg !== undefined) {
+      return
+    }
+
+    t.equal(line.msg, DEFAULT_REQUEST_RECEIVED_MSG)
+    t.equal(line.label, 'GET customReceivedObject')
     t.end()
   })
 })
@@ -890,6 +960,25 @@ test('uses the custom errorMessage callback if passed in as an option', function
 
   dest.on('data', function (line) {
     t.equal(line.msg.indexOf(customErrorMessage + ' GET'), 0)
+    t.end()
+  })
+})
+
+test('uses the custom errorObject callback if passed in as an option', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customErrorObject: function (req, res, err, val) {
+      return { ...val, label: 'customErrorObject ' + req.method + ' ' + err.toString() }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.label.indexOf('customErrorObject GET'), 0)
     t.end()
   })
 })
