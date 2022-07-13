@@ -155,7 +155,7 @@ function pinoLogger (opts, stream) {
 
     if (autoLogging) {
       if (autoLoggingIgnore !== null && shouldLogSuccess === true) {
-        const isIgnored = autoLoggingIgnore !== null && autoLoggingIgnore(req)
+        const isIgnored = autoLoggingIgnore(req)
         shouldLogSuccess = !isIgnored
       }
 
