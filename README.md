@@ -122,13 +122,21 @@ $ node example.js | pino-pretty
 
 const http = require('http')
 const server = http.createServer(handle)
+const { v4: uuidv4 } = require('uuid')
 const pino = require('pino')
 const logger = require('pino-http')({
   // Reuse an existing logger instance
   logger: pino(),
 
   // Define a custom request id function
-  genReqId: function (req) { return req.id },
+  genReqId: function (req, res) {
+    if (req.id) return req.id
+    let id = req.get('X-Request-Id')
+    if (id) return id
+    id = uuidv4()
+    res.header('X-Request-Id', id)
+    return id
+  },
 
   // Define custom serializers
   serializers: {
