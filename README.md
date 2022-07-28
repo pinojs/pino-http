@@ -122,7 +122,7 @@ $ node example.js | pino-pretty
 
 const http = require('http')
 const server = http.createServer(handle)
-const { v4: uuidv4 } = require('uuid')
+const { randomUUID } = require('node:crypto')
 const pino = require('pino')
 const logger = require('pino-http')({
   // Reuse an existing logger instance
@@ -133,7 +133,7 @@ const logger = require('pino-http')({
     if (req.id) return req.id
     let id = req.get('X-Request-Id')
     if (id) return id
-    id = uuidv4()
+    id = randomUUID()
     res.header('X-Request-Id', id)
     return id
   },
