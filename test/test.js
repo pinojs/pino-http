@@ -286,11 +286,12 @@ test('allocate a unique id to every request', function (t) {
 })
 
 test('uses a custom genReqId function', function (t) {
-  t.plan(4)
+  t.plan(5)
 
   const dest = split(JSON.parse)
   let idToTest
-  function genReqId (req) {
+  function genReqId (req, res) {
+    t.ok(res, 'res is defined')
     t.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest
@@ -536,7 +537,8 @@ test('support a custom instance with custom genReqId function', function (t) {
   const dest = split(JSON.parse)
 
   let idToTest
-  function genReqId (req) {
+  function genReqId (req, res) {
+    t.ok(res, 'res is defined')
     t.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest

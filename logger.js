@@ -136,7 +136,7 @@ function pinoLogger (opts, stream) {
   function loggingMiddleware (req, res, next) {
     let shouldLogSuccess = true
 
-    req.id = genReqId(req)
+    req.id = genReqId(req, res)
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
@@ -209,7 +209,7 @@ function reqIdGenFactory (func) {
   if (typeof func === 'function') return func
   const maxInt = 2147483647
   let nextReqId = 0
-  return function genReqId (req) {
+  return function genReqId (req, res) {
     return req.id || (nextReqId = (nextReqId + 1) & maxInt)
   }
 }
