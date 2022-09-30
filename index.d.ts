@@ -42,7 +42,7 @@ export interface Options extends pino.LoggerOptions {
 }
 
 export interface GenReqId {
-    (req: IncomingMessage): ReqId;
+    (req: IncomingMessage, res: ServerResponse): ReqId;
 }
 
 export interface AutoLoggingOptions {
