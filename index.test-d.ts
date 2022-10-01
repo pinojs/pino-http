@@ -12,9 +12,10 @@ const logger = pino();
 pinoHttp();
 pinoHttp({ logger });
 pinoHttp({ logger }).logger = logger;
-pinoHttp({ genReqId: (req: IncomingMessage) => req.statusCode || 200 });
-pinoHttp({ genReqId: (req: IncomingMessage) => 'foo' });
-pinoHttp({ genReqId: (req: IncomingMessage) => Buffer.allocUnsafe(16) });
+pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => req.statusCode || 200 });
+pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCode || 200 });
+pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
+pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
 pinoHttp({ useLevel: 'error' });
 pinoHttp({ prettyPrint: true }); // deprecated but still present in pino.
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
