@@ -10,7 +10,7 @@
 
 import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
-import { SerializedError, SerializedRequest, SerializedResponse } from 'pino-std-serializers';
+import { err, req, res, SerializedError, SerializedRequest, SerializedResponse } from 'pino-std-serializers';
 
 declare function PinoHttp(opts?: Options, stream?: pino.DestinationStream): HttpLogger;
 
@@ -58,6 +58,12 @@ export interface CustomAttributeKeys {
 }
 
 export interface StdSerializers {
+    err: typeof err;
+    req: typeof req;
+    res: typeof res;
+}
+
+export interface StdSerializedResults {
     err: SerializedError;
     req: SerializedRequest;
     res: SerializedResponse;

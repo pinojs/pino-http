@@ -5,7 +5,8 @@ import { IncomingMessage, RequestListener, ServerResponse } from 'http';
 import { Socket } from 'net';
 import pino from 'pino';
 import { Writable } from 'stream';
-import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers } from '.';
+import { err, req, res } from 'pino-std-serializers';
+import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers, StdSerializedResults } from '.';
 
 const logger = pino();
 
@@ -122,6 +123,12 @@ delete options.customLogLevel;
 const ph: HttpLogger = pinoHttp(options);
 
 const stdSerializers: StdSerializers = {
+    err: err,
+    req: req,
+    res: res
+}
+
+const stdSerializedResults: StdSerializedResults = {
   err: {
     type: 'type',
     message: 'message',
