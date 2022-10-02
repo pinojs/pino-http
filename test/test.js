@@ -831,7 +831,7 @@ test('uses the custom successMessage callback if passed in as an option', functi
   })
 })
 
-test('pass response time as a parameter to the custom successMessage callback', function (t) {
+test('pass responseTime argument to the custom successMessage callback', function (t) {
   const dest = split(JSON.parse)
   const customResponseMessage = 'Response time is: '
   const logger = pinoHttp({
