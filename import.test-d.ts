@@ -6,7 +6,7 @@ import { pinoHttp as pinoHttpNamed } from '.';
 import * as pinoHttpStar from '.';
 import pinoHttpCjsImport = require ('.');
 const pinoHttpCjs = require('.');
-const { pinoHttp: pinoHttpCjsNamed } = require('.')
+const { pinoHttp: pinoHttpCjsNamed } = require('.');
 
 const logger = pino();
 
