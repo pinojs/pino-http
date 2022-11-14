@@ -77,6 +77,7 @@ function pinoLogger (opts, stream) {
   delete opts.customErroredMessage
 
   const quietReqLogger = !!opts.quietReqLogger
+  const quietResLogger = !!opts.quietResLogger
 
   const logger = wrapChild(opts, theStream)
 
@@ -114,7 +115,6 @@ function pinoLogger (opts, stream) {
 
       log[level](
         onRequestErrorObject(req, this, error, {
-          [resKey]: this,
           [errKey]: error,
           [responseTimeKey]: responseTime
         }),
@@ -126,7 +126,6 @@ function pinoLogger (opts, stream) {
 
     log[level](
       onRequestSuccessObject(req, this, {
-        [resKey]: this,
         [responseTimeKey]: responseTime
       }),
       successMessage(req, this, responseTime)
@@ -138,16 +137,20 @@ function pinoLogger (opts, stream) {
 
     req.id = genReqId(req, res)
 
-    const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
+    const reqLog = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
+    let fullReqLogger = reqLog.child({ [reqKey]: req })
 
-    let fullReqLogger = log.child({ [reqKey]: req })
+    const resLog = quietResLogger ? logger.child({ [requestIdKey]: req.id }) : logger
+    let fullResLogger = resLog.child({ [resKey]: res })
+
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
+      fullResLogger = fullResLogger.child(customPropBindings)
     }
 
-    res.log = fullReqLogger
-    req.log = quietReqLogger ? log : fullReqLogger
+    res.log = quietResLogger ? resLog : fullResLogger
+    req.log = quietReqLogger ? reqLog : fullReqLogger
 
     res[startTime] = res[startTime] || Date.now()
     // carry request to be executed when response is finished

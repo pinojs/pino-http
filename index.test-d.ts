@@ -34,6 +34,7 @@ pinoHttp({ customProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 
 pinoHttp({ wrapSerializers: false });
 pinoHttp(new Writable());
 pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'reqId' }});
+pinoHttp({ quietResLogger: true });
 
 const rand = () => {
   let rtn = true;
@@ -117,6 +118,7 @@ const options: Options = {
   wrapSerializers: canBeUndefined(rtnBool()),
   customProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
   quietReqLogger: canBeUndefined(rtnBool()),
+  quietResLogger: canBeUndefined(rtnBool()),
 }
 
 // can't pass 'useLevel' and 'customLogLevel' together
