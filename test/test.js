@@ -1318,3 +1318,31 @@ test('quiet request logging - custom request id key', function (t) {
     })
   }, handler)
 })
+
+test('quiet response logging', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ quietResLogger: true }, dest)
+
+  function handler (req, res) {
+    t.pass('called')
+    req.id = 'testId'
+    logger(req, res)
+    req.log.info('quiet message')
+    res.end('hello world')
+  }
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, null, function () {
+      const quietLine = dest.read()
+      t.equal(quietLine.msg, 'quiet message')
+      t.ok(quietLine.req)
+
+      const responseLine = dest.read()
+      console.log({ responseLine })
+      t.notOk(responseLine)
+
+      t.end()
+    })
+  }, handler)
+})
