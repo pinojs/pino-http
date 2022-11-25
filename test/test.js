@@ -1339,7 +1339,6 @@ test('quiet response complete logging', function (t) {
       t.ok(quietLine.req)
 
       const responseLine = dest.read()
-      console.log({ responseLine })
       t.notOk(responseLine)
 
       t.end()
