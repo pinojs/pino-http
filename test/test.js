@@ -1319,7 +1319,7 @@ test('quiet request logging - custom request id key', function (t) {
   }, handler)
 })
 
-test('quiet response logging', function (t) {
+test('quiet response complete logging', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ logReqSuccess: false }, dest)
 
