@@ -77,7 +77,7 @@ function pinoLogger (opts, stream) {
   delete opts.customErroredMessage
 
   const quietReqLogger = !!opts.quietReqLogger
-  const quietResLogger = !!opts.quietResLogger
+  const logReqSuccess = !!opts.logReqSuccess
 
   const logger = wrapChild(opts, theStream)
 
@@ -135,7 +135,7 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (req, res, next) {
-    let shouldLogSuccess = !quietResLogger
+    let shouldLogSuccess = logReqSuccess
 
     req.id = genReqId(req, res)
 

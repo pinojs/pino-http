@@ -1321,7 +1321,7 @@ test('quiet request logging - custom request id key', function (t) {
 
 test('quiet response logging', function (t) {
   const dest = split(JSON.parse)
-  const logger = pinoHttp({ quietResLogger: true }, dest)
+  const logger = pinoHttp({ logReqSuccess: false }, dest)
 
   function handler (req, res) {
     t.pass('called')
