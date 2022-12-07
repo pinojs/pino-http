@@ -118,6 +118,50 @@ test('exposes the internal pino', function (t) {
   logger.logger.info('hello world')
 })
 
+test('internal pino logger not shared between multiple middleware', function (t) {
+  t.plan(1)
+
+  const dest = split(JSON.parse)
+  const middleware1 = pinoHttp(dest)
+  const middleware2 = pinoHttp(dest)
+
+  t.not(middleware1.logger, middleware2.logger, 'expected loggers not to be shared between middleware invocations')
+})
+
+test('when multiple pino middleware are present each pino logger retains its own redact config', function (t) {
+  t.plan(6)
+
+  const middleware1Output = split(JSON.parse)
+  const middleware2Output = split(JSON.parse)
+  const middleware3Output = split(JSON.parse)
+  const middleware1 = pinoHttp({ redact: ['req.method'] }, middleware1Output)
+  const middleware2 = pinoHttp({ redact: ['req.url'] }, middleware2Output)
+  const middleware3 = pinoHttp({}, middleware3Output)
+
+  setup(t, (req, res, next) => {
+    middleware1(req, res, next)
+    middleware2(req, res, next)
+    middleware3(req, res, next)
+    t.ok(req.log, 'pino http middleware should have set request log logger to middleware1\'s logger')
+    t.equal(req.allLogs.length, 3, 'multiple pino http middleware should have set request additional loggers')
+  }, function (err, server) {
+    t.error(err)
+    doGet(server, '/')
+  })
+
+  middleware1Output.on('data', function (line) {
+    t.equal(line.req.method, '[Redacted]', 'method is Redacted')
+  })
+
+  middleware2Output.on('data', function (line) {
+    t.equal(line.req.url, '[Redacted]', 'url is Redacted')
+  })
+
+  middleware3Output.on('data', function (line) {
+    t.equal(line.req.method, 'GET', 'method is get and not redacted')
+  })
+})
+
 test('uses the log level passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
@@ -261,7 +305,7 @@ test('throw error if custom log level and log level passed in together', functio
       }
     }, dest)
   }
-  t.throws(throwFunction, { message: "You can't pass 'useLevel' and 'customLogLevel' together" })
+  t.throws(throwFunction, { message: 'You can\'t pass \'useLevel\' and \'customLogLevel\' together' })
   t.end()
 })
 
@@ -290,6 +334,7 @@ test('uses a custom genReqId function', function (t) {
 
   const dest = split(JSON.parse)
   let idToTest
+
   function genReqId (req, res) {
     t.ok(res, 'res is defined')
     t.ok(req.url, 'The first argument must be the request parameter')
@@ -537,6 +582,7 @@ test('support a custom instance with custom genReqId function', function (t) {
   const dest = split(JSON.parse)
 
   let idToTest
+
   function genReqId (req, res) {
     t.ok(res, 'res is defined')
     t.ok(req.url, 'The first argument must be the request parameter')
@@ -1078,6 +1124,7 @@ test('uses custom log object attribute keys when provided, error request', funct
 
 test('uses custom request properties to log additional attributes when provided', function (t) {
   const dest = split(JSON.parse)
+
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -1086,6 +1133,7 @@ test('uses custom request properties to log additional attributes when provided'
       }
     }
   }
+
   const logger = pinoHttp({
     customProps: customPropsHandler
   }, dest)
@@ -1104,6 +1152,7 @@ test('uses custom request properties to log additional attributes when provided'
 
 test('uses old custom request properties interface to log additional attributes', function (t) {
   const dest = split(JSON.parse)
+
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -1112,6 +1161,7 @@ test('uses old custom request properties interface to log additional attributes'
       }
     }
   }
+
   const logger = pinoHttp({
     customProps: customPropsHandler
   }, dest)
@@ -1130,6 +1180,7 @@ test('uses old custom request properties interface to log additional attributes'
 
 test('uses custom request properties to log additional attributes when response provided', function (t) {
   const dest = split(JSON.parse)
+
   function customPropsHandler (req, res) {
     if (req && res) {
       return {
@@ -1138,6 +1189,7 @@ test('uses custom request properties to log additional attributes when response 
       }
     }
   }
+
   const logger = pinoHttp({
     customProps: customPropsHandler
   }, dest)
