@@ -156,7 +156,9 @@ function pinoLogger (opts, stream) {
     if (!req.log) {
       req.log = requestLogger
     }
-    req.allLogs ??= []
+    if (!req.allLogs) {
+      req.allLogs = []
+    }
     req.allLogs.push(requestLogger)
 
     res[startTime] = res[startTime] || Date.now()
