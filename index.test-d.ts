@@ -18,7 +18,6 @@ pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCo
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
 pinoHttp({ useLevel: 'error' });
-pinoHttp({ prettyPrint: true }); // deprecated but still present in pino.
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
 pinoHttp({ autoLogging: false });
 pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
