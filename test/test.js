@@ -892,7 +892,7 @@ test('pass responseTime argument to the custom successMessage callback', functio
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customResponseMessage + 0 + ' GET')
+    t.match(line.msg, /Response time is: \d+ GET/)
     t.end()
   })
 })
