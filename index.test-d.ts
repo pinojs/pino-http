@@ -18,7 +18,6 @@ pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCo
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
 pinoHttp({ useLevel: 'error' });
-pinoHttp({ prettyPrint: true }); // deprecated but still present in pino.
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
 pinoHttp({ autoLogging: false });
 pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
@@ -157,6 +156,7 @@ const stdSerializedResults: StdSerializedResults = {
 const httpServerListener: RequestListener = (request, response) => {
   // req.log and req.id should be available
   request.log.info(`Request received with request ID ${request.id}`);
+  request.allLogs[0].info("Request Received");
   // res[startTime] should be available
   response[startTime] = Date.now();
   response.end("Hello world");

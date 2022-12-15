@@ -80,6 +80,7 @@ declare module "http" {
     interface IncomingMessage {
       id: ReqId;
       log: pino.Logger;
+      allLogs: pino.Logger[];
     }
 
     interface ServerResponse {

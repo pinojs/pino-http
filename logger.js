@@ -37,7 +37,7 @@ function pinoLogger (opts, stream) {
   delete opts.wrapSerializers
 
   if (opts.useLevel && opts.customLogLevel) {
-    throw new Error("You can't pass 'useLevel' and 'customLogLevel' together")
+    throw new Error('You can\'t pass \'useLevel\' and \'customLogLevel\' together')
   }
 
   function getValidLogLevel (level, defaultValue = 'info') {
@@ -85,58 +85,56 @@ function pinoLogger (opts, stream) {
   delete opts.useLevel
 
   const genReqId = reqIdGenFactory(opts.genReqId)
-  loggingMiddleware.logger = logger
-  return loggingMiddleware
+  const result = (req, res, next) => {
+    return loggingMiddleware(logger, req, res, next)
+  }
+  result.logger = logger
+  return result
 
-  function onResFinished (err) {
-    this.removeListener('close', onResFinished)
-    this.removeListener('error', onResFinished)
-    this.removeListener('finish', onResFinished)
-
-    let log = this.log
-    const responseTime = Date.now() - this[startTime]
-    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, this, err)
+  function onResFinished (res, logger, err) {
+    let log = logger
+    const responseTime = Date.now() - res[startTime]
+    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err)
 
     if (level === 'silent') {
       return
     }
 
-    const req = this[reqObject]
-    const res = this
+    const req = res[reqObject]
 
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
-      log = this.log.child(customPropBindings)
+      log = logger.child(customPropBindings)
     }
 
-    if (err || this.err || this.statusCode >= 500) {
-      const error = err || this.err || new Error('failed with status code ' + this.statusCode)
+    if (err || res.err || res.statusCode >= 500) {
+      const error = err || res.err || new Error('failed with status code ' + res.statusCode)
 
       log[level](
-        onRequestErrorObject(req, this, error, {
-          [resKey]: this,
+        onRequestErrorObject(req, res, error, {
+          [resKey]: res,
           [errKey]: error,
           [responseTimeKey]: responseTime
         }),
-        errorMessage(req, this, error)
+        errorMessage(req, res, error)
       )
 
       return
     }
 
     log[level](
-      onRequestSuccessObject(req, this, {
-        [resKey]: this,
+      onRequestSuccessObject(req, res, {
+        [resKey]: res,
         [responseTimeKey]: responseTime
       }),
-      successMessage(req, this, responseTime)
+      successMessage(req, res, responseTime)
     )
   }
 
-  function loggingMiddleware (req, res, next) {
+  function loggingMiddleware (logger, req, res, next) {
     let shouldLogSuccess = true
 
-    req.id = genReqId(req, res)
+    req.id = req.id || genReqId(req, res)
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
@@ -146,12 +144,35 @@ function pinoLogger (opts, stream) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
     }
 
-    res.log = fullReqLogger
-    req.log = quietReqLogger ? log : fullReqLogger
+    const responseLogger = fullReqLogger
+    const requestLogger = quietReqLogger ? log : fullReqLogger
+
+    if (!res.log) {
+      res.log = responseLogger
+    }
+    if (!res.allLogs) {
+      res.allLogs = []
+    }
+    res.allLogs.push(responseLogger)
+
+    if (!req.log) {
+      req.log = requestLogger
+    }
+    if (!req.allLogs) {
+      req.allLogs = []
+    }
+    req.allLogs.push(requestLogger)
 
     res[startTime] = res[startTime] || Date.now()
     // carry request to be executed when response is finished
     res[reqObject] = req
+
+    const onResponseComplete = (err) => {
+      res.removeListener('close', onResponseComplete)
+      res.removeListener('finish', onResponseComplete)
+      res.removeListener('error', onResponseComplete)
+      return onResFinished(res, responseLogger, err)
+    }
 
     if (autoLogging) {
       if (autoLoggingIgnore !== null && shouldLogSuccess === true) {
@@ -167,14 +188,14 @@ function pinoLogger (opts, stream) {
           const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : {}
           const receivedStringResult = receivedMessage !== undefined ? receivedMessage(req, res) : undefined
 
-          req.log[level](receivedObjectResult, receivedStringResult)
+          requestLogger[level](receivedObjectResult, receivedStringResult)
         }
 
-        res.on('close', onResFinished)
-        res.on('finish', onResFinished)
+        res.on('close', onResponseComplete)
+        res.on('finish', onResponseComplete)
       }
 
-      res.on('error', onResFinished)
+      res.on('error', onResponseComplete)
     }
 
     if (next) {
