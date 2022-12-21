@@ -18,7 +18,6 @@ pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCo
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
 pinoHttp({ useLevel: 'error' });
-pinoHttp({ prettyPrint: true }); // deprecated but still present in pino.
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
 pinoHttp({ autoLogging: false });
 pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
@@ -29,7 +28,7 @@ pinoHttp({ customAttributeKeys: { res: 'res' } });
 pinoHttp({ customAttributeKeys: { err: 'err' } });
 pinoHttp({ customAttributeKeys: { responseTime: 'responseTime' } });
 pinoHttp({ customAttributeKeys: { req: 'req', res: 'res', err: 'err', responseTime: 'responseTime' } });
-pinoHttp({ customLogLevel: (req: IncomingMessage, res: ServerResponse, error: Error) => 'info' });
+pinoHttp({ customLogLevel: (req: IncomingMessage, res: ServerResponse, error: Error | undefined) => error ? 'error' : 'info' });
 pinoHttp({ customProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
 pinoHttp({ wrapSerializers: false });
 pinoHttp(new Writable());
@@ -106,7 +105,7 @@ const options: Options = {
   useLevel: canBeUndefined(rtnLevel()),
   stream: canBeUndefined({ write: (msg: string) => { return } }),
   autoLogging: canBeUndefined(autoLoggingOptions),
-  customLogLevel: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error) => rtnLevel()),
+  customLogLevel: canBeUndefined((req: IncomingMessage, res: ServerResponse, _error: Error | undefined) => rtnLevel()),
   customReceivedMessage: canBeUndefined((req, res) => {
     res.setHeader('x-custom-header-123', 'custom-header-value');
     return `Received HTTP ${req.httpVersion} ${req.method}`;
