@@ -355,6 +355,31 @@ test('uses a custom genReqId function', function (t) {
   })
 })
 
+test('default genReqId returns a string, wraps around', function (t) {
+  t.plan(10)
+
+  const genReqId = pinoHttp.defaultReqIdGenFactory()
+  t.equal(typeof genReqId, 'function')
+
+  const first = genReqId()
+  const second = genReqId()
+  t.equal(typeof first, 'string')
+  // 12 bytes -> 16 chars + 2 chars for the '-' and counter
+  t.equal(first.length, 16 + 2)
+  t.equal(first.slice(0, 16), second.slice(0, 16))
+  t.equal(first.slice(17), '1')
+  t.equal(second.slice(17), '2')
+
+  for (let i = 0; i < 9999 - 3; i++) genReqId()
+  const last = genReqId()
+  t.equal(last.slice(0, 16), first.slice(0, 16))
+  t.equal(last.slice(17), '9999')
+
+  const next = genReqId()
+  t.notEqual(next.slice(0, 16), first.slice(0, 16))
+  t.equal(next.slice(17), '1')
+})
+
 test('reuses existing req.id if present', function (t) {
   t.plan(2)
 

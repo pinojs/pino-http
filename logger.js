@@ -228,10 +228,18 @@ function wrapChild (opts, stream) {
 
 function reqIdGenFactory (func) {
   if (typeof func === 'function') return func
-  const maxInt = 2147483647
-  let nextReqId = 0
-  return function genReqId (req, res) {
-    return req.id || (nextReqId = (nextReqId + 1) & maxInt)
+  return defaultReqIdGenFactory()
+}
+
+function defaultReqIdGenFactory () {
+  const { randomFillSync } = require('crypto')
+  const buffer = Buffer.alloc(12)
+  let id = randomFillSync(buffer).toString('base64url')
+  let count = 0
+
+  return function genReqId () {
+    if (count++ < 9999) return `${id}-${count}`
+    return `${(id = randomFillSync(buffer).toString('base64url'))}-${(count = 1)}`
   }
 }
 
@@ -268,3 +276,4 @@ module.exports.stdSerializers = {
 module.exports.startTime = startTime
 module.exports.default = pinoLogger
 module.exports.pinoHttp = pinoLogger
+module.exports.defaultReqIdGenFactory = defaultReqIdGenFactory
