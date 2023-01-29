@@ -11,6 +11,11 @@ const { pinoHttp: pinoHttpCjsNamed } = require('.');
 const logger = pino();
 
 expectType<HttpLogger>(pinoHttp({ logger }));
+expectType<HttpLogger>(pinoHttp({
+  customSuccessMessage(req, res, responseTime) {
+    return `${responseTime}`
+  }
+}));
 expectType<HttpLogger>(pinoHttpNamed());
 expectType<HttpLogger>(pinoHttpStar.default());
 expectType<HttpLogger>(pinoHttpStar.pinoHttp());
