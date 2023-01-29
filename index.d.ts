@@ -30,7 +30,7 @@ export interface Options extends pino.LoggerOptions {
     autoLogging?: boolean | AutoLoggingOptions | undefined;
     customLogLevel?: ((req: IncomingMessage, res: ServerResponse, error?: Error) => pino.LevelWithSilent) | undefined;
     customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
-    customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
+    customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse, responseTime: number) => string) | undefined;
     customErrorMessage?: ((req: IncomingMessage, res: ServerResponse, error: Error) => string) | undefined;
     customReceivedObject?: ((req: IncomingMessage, res: ServerResponse, val?: any) => any) | undefined;
     customSuccessObject?: ((req: IncomingMessage, res: ServerResponse, val: any) => any) | undefined;
