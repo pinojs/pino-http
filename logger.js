@@ -94,13 +94,12 @@ function pinoLogger (opts, stream) {
   function onResFinished (res, logger, err) {
     let log = logger
     const responseTime = Date.now() - res[startTime]
-    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err)
+    const req = res[reqObject]
+    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err, req)
 
     if (level === 'silent') {
       return
     }
-
-    const req = res[reqObject]
 
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
