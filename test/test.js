@@ -198,6 +198,26 @@ test('uses the custom log level passed in as an option', function (t) {
   })
 })
 
+test('uses the custom log level passed in as an option, req and res is defined', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customLogLevel: function (_req, _res, _err) {
+      t.ok(_req, 'req is defined')
+      t.ok(_res, 'res is defined')
+
+      return 'warn'
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+  dest.on('data', function () {
+    t.end()
+  })
+})
+
 test('uses the log level passed in as an option, where the level is a custom one', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
