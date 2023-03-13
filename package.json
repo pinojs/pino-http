@@ -16,7 +16,7 @@
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",
     "pino-http-print": "^3.1.0",
-    "pino-pretty": "^9.0.0",
+    "pino-pretty": "^10.0.0",
     "pre-commit": "^1.1.2",
     "split2": "^4.0.0",
     "standard": "^17.0.0",
