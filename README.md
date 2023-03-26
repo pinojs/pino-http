@@ -1,4 +1,4 @@
-# pino-http&nbsp;&nbsp;[![Build Status](https://img.shields.io/github/workflow/status/pinojs/pino-http/CI)](https://github.com/pinojs/pino-http/actions)
+# pino-http&nbsp;&nbsp;[![Build Status](https://img.shields.io/github/actions/workflow/status/pinojs/pino-http/ci.yml?branch=master)](https://github.com/pinojs/pino-http/actions)
 
 High-speed HTTP logger for Node.js
 
