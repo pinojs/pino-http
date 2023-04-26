@@ -115,7 +115,7 @@ $ node example.js | pino-pretty
 
 #### Examples
 
-##### Use as middleware
+##### Use as Express middleware
 ```js
 const express = require('express')
 const logger = require('pino-http')
