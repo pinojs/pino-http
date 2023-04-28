@@ -115,6 +115,23 @@ $ node example.js | pino-pretty
 
 #### Examples
 
+##### Use as Express middleware
+```js
+const express = require('express')
+const logger = require('pino-http')
+
+const app = express()
+
+app.use(logger())
+
+function handle (req, res) {
+  req.log.info('something else')
+  res.end('hello world')
+}
+
+app.listen(3000)
+```
+
 ##### Logger options
 
 ```js
