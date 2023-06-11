@@ -1,6 +1,6 @@
 'use strict'
 
-const pino = require('pino')
+const { pino, symbols: { stringifySym, chindingsSym } } = require('pino')
 const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const startTime = Symbol('startTime')
@@ -103,7 +103,11 @@ function pinoLogger (opts, stream) {
 
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
-      log = logger.child(customPropBindings)
+      const customPropBindingStr = logger[stringifySym](customPropBindings).replace(/[{}]/g, '')
+      const customPropBindingsStr = logger[chindingsSym]
+      if (!customPropBindingsStr.includes(customPropBindingStr)) {
+        log = logger.child(customPropBindings)
+      }
     }
 
     if (err || res.err || res.statusCode >= 500) {
