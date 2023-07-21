@@ -218,6 +218,7 @@ const logger = require('pino-http')({
 function handle (req, res) {
   logger(req, res)
   req.log.info('something else')
+  res.log.info('just in case you need access to logging when only the response is in scope')
   res.end('hello world')
 }
 
@@ -300,6 +301,7 @@ http.createServer((req, res) => {
   res[logger.startTime] = Date.now()
   someImportantThingThatHasToBeFirst(req, res)
   logger(req, res)
+  res.log.info('log is available on both req and res');
   res.end('hello world')
 }).listen(3000)
 ```
