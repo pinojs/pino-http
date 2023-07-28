@@ -138,6 +138,8 @@ const stdSerializedResults: StdSerializedResults = {
     123: {},
   },
   req: {
+    params: {},
+    query: {},
     id: canBeUndefined('id'),
     method: 'GET',
     url: 'http://0.0.0.0',
@@ -159,5 +161,8 @@ const httpServerListener: RequestListener = (request, response) => {
   request.allLogs[0].info("Request Received");
   // res[startTime] should be available
   response[startTime] = Date.now();
+  // res.log and res.allLogs should be available
+  response.log.info("Logging works on response");
+  request.allLogs[0].info("allLogs available on response");
   response.end("Hello world");
 };

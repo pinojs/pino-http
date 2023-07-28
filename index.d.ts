@@ -89,5 +89,7 @@ declare module "http" {
 
     interface OutgoingMessage {
       [startTime]: number;
+      log: pino.Logger;
+      allLogs: pino.Logger[];
     }
   }
