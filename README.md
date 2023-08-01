@@ -149,7 +149,7 @@ const logger = require('pino-http')({
   genReqId: function (req, res) {
     const existingID = req.id ?? req.headers["x-request-id"]
     if (existingID) return existingID
-    id = randomUUID()
+    const id = randomUUID()
     res.setHeader('X-Request-Id', id)
     return id
   },
