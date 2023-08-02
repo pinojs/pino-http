@@ -1304,7 +1304,7 @@ test('uses custom request properties and once customProps', function (t) {
   })
 
   dest.on('data', function (line) {
-    t.equal(line.match(/key1/gi).length, 1, 'once customProps')
+    t.equal(line.match(/key1/g).length, 1, 'once customProps')
     t.end()
   })
 })
