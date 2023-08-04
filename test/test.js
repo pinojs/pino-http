@@ -1285,6 +1285,30 @@ test('uses custom request properties to log additional attributes; custom props 
   })
 })
 
+test('uses custom request properties and once customProps', function (t) {
+  const dest = split()
+
+  function customPropsHandler (req, res) {
+    return {
+      key1: 'value1'
+    }
+  }
+
+  const logger = pinoHttp({
+    customProps: customPropsHandler
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.equal(line.match(/key1/g).length, 1, 'once customProps')
+    t.end()
+  })
+})
+
 test('dont pass custom request properties to log additional attributes', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
