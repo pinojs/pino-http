@@ -8,30 +8,69 @@ import { Writable } from 'stream';
 import { err, req, res } from 'pino-std-serializers';
 import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers, StdSerializedResults } from '.';
 
+interface CustomRequest extends IncomingMessage {
+  context: number;
+}
+
+interface CustomResponse extends ServerResponse {
+  context: number;
+}
+
 const logger = pino();
 
 pinoHttp();
 pinoHttp({ logger });
 pinoHttp({ logger }).logger = logger;
+pinoHttp<CustomRequest, CustomResponse>({ logger });
+
+// #genReqId
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => req.statusCode || 200 });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCode || 200 });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
+pinoHttp<CustomRequest, CustomResponse>({ genReqId: (req: CustomRequest, res: CustomResponse) => Buffer.allocUnsafe(16) });
+
+// #useLevel
 pinoHttp({ useLevel: 'error' });
+
+// #transport
 pinoHttp({ transport: { target: 'pino-pretty', options: { colorize: true } } });
+
+// #autologging
 pinoHttp({ autoLogging: false });
 pinoHttp({ autoLogging: { ignore: (req: IncomingMessage) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
+pinoHttp<CustomRequest>({ autoLogging: { ignore: (req: CustomRequest) => req.headers['user-agent'] === 'ELB-HealthChecker/2.0' } });
+
+// #customSuccessMessage
 pinoHttp({ customSuccessMessage: (req: IncomingMessage, res: ServerResponse) => 'Success' });
+pinoHttp<CustomRequest, CustomResponse>({ customSuccessMessage: (req: CustomRequest, res: CustomResponse) => 'Success' });
+
+// #customErrorMessage
 pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error) => `Error - ${error}` });
+pinoHttp<CustomRequest, CustomResponse>({ customErrorMessage: (req: CustomRequest, res: CustomResponse, error: Error) => `Error - ${error}` });
+
+// #customAttributeKeys
 pinoHttp({ customAttributeKeys: { req: 'req' } });
 pinoHttp({ customAttributeKeys: { res: 'res' } });
 pinoHttp({ customAttributeKeys: { err: 'err' } });
 pinoHttp({ customAttributeKeys: { responseTime: 'responseTime' } });
 pinoHttp({ customAttributeKeys: { req: 'req', res: 'res', err: 'err', responseTime: 'responseTime' } });
+
+// #customLogLevel
 pinoHttp({ customLogLevel: (req: IncomingMessage, res: ServerResponse, error: Error | undefined) => error ? 'error' : 'info' });
+pinoHttp<CustomRequest, CustomResponse>({ customLogLevel: (req: CustomRequest, res: CustomResponse, error: Error | undefined) => error ? 'error' : 'info' });
+
+// #customProps
 pinoHttp({ customProps: (req: IncomingMessage, res: ServerResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
+pinoHttp<CustomRequest, CustomResponse>({ customProps: (req: CustomRequest, res: CustomResponse) => ({ key1: 'value1', 'x-key-2': 'value2' }) });
+
+// #wrapSerializers
 pinoHttp({ wrapSerializers: false });
+
+// streams
 pinoHttp(new Writable());
+
+// #quietReqLogger + #customAttributeKeys
 pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'reqId' }});
 
 const rand = () => {
