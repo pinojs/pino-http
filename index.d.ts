@@ -12,41 +12,41 @@ import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
 import { err, req, res, SerializedError, SerializedRequest, SerializedResponse } from 'pino-std-serializers';
 
-declare function PinoHttp(opts?: Options, stream?: pino.DestinationStream): HttpLogger;
+declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse>(opts?: Options<IM, SR>, stream?: pino.DestinationStream): HttpLogger<IM, SR>;
 
-declare function PinoHttp(stream?: pino.DestinationStream): HttpLogger;
+declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse>(stream?: pino.DestinationStream): HttpLogger<IM, SR>;
 
-export interface HttpLogger {
-    (req: IncomingMessage, res: ServerResponse, next?: () => void): void;
+export interface HttpLogger<IM = IncomingMessage, SR = ServerResponse> {
+    (req: IM, res: SR, next?: () => void): void;
     logger: pino.Logger;
 }
 export type ReqId = number | string | object;
 
-export interface Options extends pino.LoggerOptions {
+export interface Options<IM = IncomingMessage, SR = ServerResponse> extends pino.LoggerOptions {
     logger?: pino.Logger | undefined;
-    genReqId?: GenReqId | undefined;
+    genReqId?: GenReqId<IM, SR> | undefined;
     useLevel?: pino.LevelWithSilent | undefined;
     stream?: pino.DestinationStream | undefined;
-    autoLogging?: boolean | AutoLoggingOptions | undefined;
-    customLogLevel?: ((req: IncomingMessage, res: ServerResponse, error?: Error) => pino.LevelWithSilent) | undefined;
-    customReceivedMessage?: ((req: IncomingMessage, res: ServerResponse) => string) | undefined;
-    customSuccessMessage?: ((req: IncomingMessage, res: ServerResponse, responseTime: number) => string) | undefined;
-    customErrorMessage?: ((req: IncomingMessage, res: ServerResponse, error: Error) => string) | undefined;
-    customReceivedObject?: ((req: IncomingMessage, res: ServerResponse, val?: any) => any) | undefined;
-    customSuccessObject?: ((req: IncomingMessage, res: ServerResponse, val: any) => any) | undefined;
-    customErrorObject?: ((req: IncomingMessage, res: ServerResponse, error: Error, val: any) => any) | undefined;
+    autoLogging?: boolean | AutoLoggingOptions<IM> | undefined;
+    customLogLevel?: ((req: IM, res: SR, error?: Error) => pino.LevelWithSilent) | undefined;
+    customReceivedMessage?: ((req: IM, res: SR) => string) | undefined;
+    customSuccessMessage?: ((req: IM, res: SR, responseTime: number) => string) | undefined;
+    customErrorMessage?: ((req: IM, res: SR, error: Error) => string) | undefined;
+    customReceivedObject?: ((req: IM, res: SR, val?: any) => any) | undefined;
+    customSuccessObject?: ((req: IM, res: SR, val: any) => any) | undefined;
+    customErrorObject?: ((req: IM, res: SR, error: Error, val: any) => any) | undefined;
     customAttributeKeys?: CustomAttributeKeys | undefined;
     wrapSerializers?: boolean | undefined;
-    customProps?: ((req: IncomingMessage, res: ServerResponse) => object) | undefined;
+    customProps?: ((req: IM, res: SR) => object) | undefined;
     quietReqLogger?: boolean | undefined;
 }
 
-export interface GenReqId {
-    (req: IncomingMessage, res: ServerResponse): ReqId;
+export interface GenReqId<IM = IncomingMessage, SR = ServerResponse> {
+    (req: IM, res: SR): ReqId;
 }
 
-export interface AutoLoggingOptions {
-    ignore?: ((req: IncomingMessage) => boolean);
+export interface AutoLoggingOptions<IM = IncomingMessage> {
+    ignore?: ((req: IM) => boolean);
 }
 
 export interface CustomAttributeKeys {
