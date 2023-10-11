@@ -39,7 +39,7 @@ jobs:
       contents: read
     strategy:
       matrix:
-        node-version: [14, 16, 18]
+        node-version: [18, 20]
     steps:
       - name: Check out repo
         uses: actions/checkout@v4

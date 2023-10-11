@@ -7,20 +7,20 @@
   "dependencies": {
     "get-caller-file": "^2.0.5",
     "pino": "^8.0.0",
-    "pino-std-serializers": "^6.0.0",
+    "pino-std-serializers": "git+https://github.com/pinojs/pino-std-serializers.git#next",
     "process-warning": "^2.0.0"
   },
   "devDependencies": {
+    "@fastify/pre-commit": "^2.0.2",
     "@types/node": "^20.1.0",
     "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",
     "pino-http-print": "^3.1.0",
     "pino-pretty": "^10.0.0",
-    "pre-commit": "^1.1.2",
     "split2": "^4.0.0",
     "standard": "^17.0.0",
-    "tap": "^16.0.0",
+    "tap": "^16.3.9",
     "ts-node": "^10.3.0",
     "tsd": "^0.29.0",
     "typescript": "^5.0.2"
