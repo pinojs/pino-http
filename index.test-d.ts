@@ -205,3 +205,13 @@ const httpServerListener: RequestListener = (request, response) => {
   request.allLogs[0].info("allLogs available on response");
   response.end("Hello world");
 };
+
+// custom levels added in the options should be available
+// on the logger returned by pino-http
+pinoHttp({
+    customLevels: {
+        bark: 25,
+        z: 90
+    },
+    fhfh: true
+}).logger.bark("arf arf");
