@@ -211,7 +211,5 @@ const httpServerListener: RequestListener = (request, response) => {
 pinoHttp({
     customLevels: {
         bark: 25,
-        z: 90
-    },
-    fhfh: true
+    }
 }).logger.bark("arf arf");
