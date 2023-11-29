@@ -516,6 +516,35 @@ test('log requests aborted during payload', function (t) {
   })
 })
 
+test('log requests aborted on the server', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+
+  function handle (req, res) {
+    logger(req, res)
+
+    req.destroy()
+    res.end()
+  }
+
+  function listen (err, server) {
+    t.error(err)
+    const client = doGet(server)
+
+    client.on('error', function () {
+      // skip error
+    })
+  }
+
+  setup(t, logger, listen, handle)
+
+  dest.on('data', function (line) {
+    t.ok(line.responseTime >= 0, 'responseTime is defined')
+    t.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
+    t.end()
+  })
+})
+
 test('no auto logging with autoLogging set to false', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ autoLogging: false }, dest)
