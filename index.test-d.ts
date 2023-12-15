@@ -208,7 +208,7 @@ const httpServerListener: RequestListener = (request, response) => {
 
 // custom levels added in the options should be available
 // on the logger returned by pino-http
-pinoHttp({
+pinoHttp<IncomingMessage, ServerResponse, 'bark'>({
     customLevels: {
         bark: 25,
     }
