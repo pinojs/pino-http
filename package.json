@@ -1,12 +1,12 @@
 {
   "name": "pino-http",
-  "version": "8.5.1",
+  "version": "8.6.0",
   "description": "High-speed HTTP logger for Node.js",
   "main": "logger.js",
   "types": "index.d.ts",
   "dependencies": {
     "get-caller-file": "^2.0.5",
-    "pino": "^8.0.0",
+    "pino": "^8.17.0",
     "pino-std-serializers": "^6.0.0",
     "process-warning": "^2.0.0"
   },
