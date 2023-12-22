@@ -206,10 +206,21 @@ const httpServerListener: RequestListener = (request, response) => {
   response.end("Hello world");
 };
 
-// custom levels added in the options should be available
+// custom levels added in the options should be available/typesafe
 // on the logger returned by pino-http
-pinoHttp<IncomingMessage, ServerResponse, 'bark'>({
-    customLevels: {
-        bark: 25,
-    }
-}).logger.bark("arf arf");
+pinoHttp({ customLevels: { bark: 25 } }).logger.bark("arf arf");
+
+// custom levels added to the logger passed in the options should be available/typesafe
+pinoHttp({ logger: pino({ customLevels: { bark: 35 } }) }).logger.bark(
+  "arf arf"
+);
+
+// if custom levels are passed in both the customLevels option and via the logger
+// all the levels should be available/typesafe
+const { logger: customLevelsLogger } = pinoHttp({
+  logger: pino({ customLevels: { meow: 35 } }),
+  customLevels: { bark: 25 },
+});
+
+customLevelsLogger.meow("meow meow");
+customLevelsLogger.bark("arf arf");

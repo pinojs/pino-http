@@ -12,13 +12,23 @@ import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
 import { err, req, res, SerializedError, SerializedRequest, SerializedResponse } from 'pino-std-serializers';
 
-declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never>(opts?: Options<IM, SR>, stream?: pino.DestinationStream): HttpLogger<IM, SR, CustomLevels>;
+declare function PinoHttp< IM = IncomingMessage, SR = ServerResponse, Opts = Options<IM, SR>>(opts?: Opts, stream?: pino.DestinationStream): HttpLogger<IM, SR, Opts>;
 
 declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse>(stream?: pino.DestinationStream): HttpLogger<IM, SR>;
 
-export interface HttpLogger<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never> {
-    (req: IM, res: SR, next?: () => void): void;
-    logger: pino.Logger<CustomLevels>;
+export interface HttpLogger<
+  IM = IncomingMessage,
+  SR = ServerResponse,
+  Opts = Options<IM, SR>
+> {
+  (req: IM, res: SR, next?: () => void): void;
+  logger: pino.Logger<
+    Opts extends { customLevels?: infer C1 } & {
+      logger?: { customLevels?: infer C2 };
+    }
+      ? keyof C1 | keyof C2
+      : never
+  >;
 }
 export type ReqId = number | string | object;
 
