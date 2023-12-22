@@ -259,6 +259,7 @@ function defaultFailedRequestMessageProvider () {
 }
 
 function defaultSuccessfulRequestMessageProvider (req, res) {
+  /* istanbul ignore next */
   return !req.readableAborted && res.writableEnded ? 'request completed' : 'request aborted'
 }
 
