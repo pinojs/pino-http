@@ -213,3 +213,14 @@ pinoHttp<IncomingMessage, ServerResponse, 'bark'>({
         bark: 25,
     }
 }).logger.bark("arf arf");
+
+// customLevels in parent pino instance should be not cause
+// TypeScript errors
+const customLogger = pino({
+    customLevels: {
+        bark: 25,
+    }
+});
+pinoHttp({
+  logger: customLogger
+}).logger.bark("arf arf");
