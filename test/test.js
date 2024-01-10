@@ -947,6 +947,26 @@ test('pass responseTime argument to the custom successMessage callback', functio
   })
 })
 
+test('pass responseTime argument to the custom errorMessage callback', function (t) {
+  const dest = split(JSON.parse)
+  const customErrorMessage = 'Response time is:'
+  const logger = pinoHttp({
+    customErrorMessage: function (req, res, err, responseTime) {
+      return `${customErrorMessage} ${responseTime} ${req.method}`
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server, ERROR_URL)
+  })
+
+  dest.on('data', function (line) {
+    t.match(line.msg, /Response time is: \d+ GET/)
+    t.end()
+  })
+})
+
 test('uses the custom successObject callback if passed in as an option', function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
