@@ -1459,14 +1459,16 @@ test('uses the nested key passed in as an option to hold values', function (t) {
   })
 
   dest.on('data', function (line) {
-    t.type(line[NESTED_KEY_VALUE], 'object', `${NESTED_KEY_VALUE} should exist`)
-    t.type(line[NESTED_KEY_VALUE].req, 'object', `req should be nested under ${NESTED_KEY_VALUE}`)
-    t.type(line[NESTED_KEY_VALUE].res, 'object', `req should be nested under ${NESTED_KEY_VALUE}`)
-    t.type(line[NESTED_KEY_VALUE].responseTime, 'number', `req should be nested under ${NESTED_KEY_VALUE}`)
+    const nestedObject = line[NESTED_KEY_VALUE]
 
-    t.ok(line[NESTED_KEY_VALUE], `${NESTED_KEY_VALUE} is defined`)
-    t.ok(line[NESTED_KEY_VALUE].req, `${NESTED_KEY_VALUE}.req is defined`)
-    t.ok(line[NESTED_KEY_VALUE].req, `${NESTED_KEY_VALUE}.res is defined`)
+    t.type(nestedObject, 'object', `${NESTED_KEY_VALUE} should exist`)
+    t.type(nestedObject.req, 'object', `req should be nested under ${NESTED_KEY_VALUE}`)
+    t.type(nestedObject.res, 'object', `res should be nested under ${NESTED_KEY_VALUE}`)
+    t.type(nestedObject.responseTime, 'number', `responseTime should be nested under ${NESTED_KEY_VALUE}`)
+
+    t.ok(nestedObject, `${NESTED_KEY_VALUE} is defined`)
+    t.ok(nestedObject.req, `${NESTED_KEY_VALUE}.req is defined`)
+    t.ok(nestedObject.req, `${NESTED_KEY_VALUE}.res is defined`)
     t.notOk(line.req, 'req should be nested under nestedKey')
     t.notOk(line.res, 'res should be nested under nestedKey')
 
