@@ -1260,6 +1260,9 @@ test('uses custom request properties and a receivedMessage callback and the prop
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
+    customReceivedObject: function (req) {
+      return { req }
+    },
     customReceivedMessage: function (_req, _res) {
       return message
     },
@@ -1443,4 +1446,30 @@ test('quiet request logging - custom request id key', function (t) {
       t.end()
     })
   }, handler)
+})
+
+test('uses the nested key passed in as an option to hold values', function (t) {
+  const NESTED_KEY_VALUE = 'someKey'
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ nestedKey: NESTED_KEY_VALUE }, dest)
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    t.type(line[NESTED_KEY_VALUE], 'object', `${NESTED_KEY_VALUE} should exist`)
+    t.type(line[NESTED_KEY_VALUE].req, 'object', `req should be nested under ${NESTED_KEY_VALUE}`)
+    t.type(line[NESTED_KEY_VALUE].res, 'object', `req should be nested under ${NESTED_KEY_VALUE}`)
+    t.type(line[NESTED_KEY_VALUE].responseTime, 'number', `req should be nested under ${NESTED_KEY_VALUE}`)
+
+    t.ok(line[NESTED_KEY_VALUE], `${NESTED_KEY_VALUE} is defined`)
+    t.ok(line[NESTED_KEY_VALUE].req, `${NESTED_KEY_VALUE}.req is defined`)
+    t.ok(line[NESTED_KEY_VALUE].req, `${NESTED_KEY_VALUE}.res is defined`)
+    t.notOk(line.req, 'req should be nested under nestedKey')
+    t.notOk(line.res, 'res should be nested under nestedKey')
+
+    t.end()
+  })
 })

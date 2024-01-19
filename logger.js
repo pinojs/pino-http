@@ -115,6 +115,7 @@ function pinoLogger (opts, stream) {
 
       log[level](
         onRequestErrorObject(req, res, error, {
+          [reqKey]: req,
           [resKey]: res,
           [errKey]: error,
           [responseTimeKey]: responseTime
@@ -127,6 +128,7 @@ function pinoLogger (opts, stream) {
 
     log[level](
       onRequestSuccessObject(req, res, {
+        [reqKey]: req,
         [resKey]: res,
         [responseTimeKey]: responseTime
       }),
@@ -141,7 +143,7 @@ function pinoLogger (opts, stream) {
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
-    let fullReqLogger = log.child({ [reqKey]: req })
+    let fullReqLogger = log
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
