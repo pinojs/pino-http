@@ -7,7 +7,7 @@
   "dependencies": {
     "get-caller-file": "^2.0.5",
     "pino": "^9.0.0",
-    "pino-std-serializers": "^6.2.2",
+    "pino-std-serializers": "^7.0.0",
     "process-warning": "^3.0.0"
   },
   "devDependencies": {
