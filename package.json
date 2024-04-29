@@ -6,7 +6,7 @@
   "types": "index.d.ts",
   "dependencies": {
     "get-caller-file": "^2.0.5",
-    "pino": "^8.0.0",
+    "pino": "^9.0.0",
     "pino-std-serializers": "git+https://github.com/pinojs/pino-std-serializers.git#next",
     "process-warning": "^2.0.0"
   },
