@@ -6,8 +6,8 @@
   "types": "index.d.ts",
   "dependencies": {
     "get-caller-file": "^2.0.5",
-    "pino": "^8.0.0",
-    "pino-std-serializers": "git+https://github.com/pinojs/pino-std-serializers.git#next",
+    "pino": "^9.0.0",
+    "pino-std-serializers": "^7.0.0",
     "process-warning": "^2.0.0"
   },
   "devDependencies": {
@@ -20,7 +20,7 @@
     "pino-pretty": "^10.0.0",
     "split2": "^4.0.0",
     "standard": "^17.0.0",
-    "tap": "^16.3.9",
+    "tap": "^18.7.2",
     "ts-node": "^10.3.0",
     "tsd": "^0.29.0",
     "typescript": "^5.0.2"
