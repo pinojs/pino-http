@@ -11,6 +11,7 @@
     "process-warning": "^3.0.0"
   },
   "devDependencies": {
+    "@fastify/pre-commit": "^2.0.2",
     "@types/node": "^20.1.0",
     "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
@@ -20,7 +21,7 @@
     "pre-commit": "^1.1.2",
     "split2": "^4.0.0",
     "standard": "^17.0.0",
-    "tap": "^16.0.0",
+    "tap": "^18.7.2",
     "ts-node": "^10.3.0",
     "tsd": "^0.31.0",
     "typescript": "^5.0.2"
