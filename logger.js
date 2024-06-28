@@ -77,6 +77,7 @@ function pinoLogger (opts, stream) {
   delete opts.customErroredMessage
 
   const quietReqLogger = !!opts.quietReqLogger
+  const quietResLogger = !!opts.quietResLogger
 
   const logger = wrapChild(opts, theStream)
 
@@ -147,7 +148,7 @@ function pinoLogger (opts, stream) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
     }
 
-    const responseLogger = fullReqLogger
+    const responseLogger = quietResLogger ? log : fullReqLogger
     const requestLogger = quietReqLogger ? log : fullReqLogger
 
     if (!res.log) {
