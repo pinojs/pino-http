@@ -42,7 +42,7 @@ function pinoLogger (opts, stream) {
 
   function getValidLogLevel (level, defaultValue = 'info') {
     if (level && typeof level === 'string') {
-      const logLevel = level.trim().toLowerCase()
+      const logLevel = level.trim()
       if (validLogLevels.includes(logLevel) === true) {
         return logLevel
       }

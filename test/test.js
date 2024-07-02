@@ -223,10 +223,10 @@ test('uses the log level passed in as an option, where the level is a custom one
   const logger = pinoHttp(
     {
       customLevels: {
-        custom: 25
+        infoCustom: 25
       },
-      useLevel: 'custom',
-      level: 'custom'
+      useLevel: 'infoCustom',
+      level: 'infoCustom'
     },
     dest
   )
