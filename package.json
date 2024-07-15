@@ -8,7 +8,7 @@
     "get-caller-file": "^2.0.5",
     "pino": "^9.0.0",
     "pino-std-serializers": "^7.0.0",
-    "process-warning": "^3.0.0"
+    "process-warning": "^4.0.0"
   },
   "devDependencies": {
     "@fastify/pre-commit": "^2.0.2",
