@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@fastify/pre-commit": "^2.0.2",
-    "@types/node": "^20.1.0",
+    "@types/node": "^22.0.0",
     "autocannon": "^7.3.0",
     "coveralls": "^3.0.0",
     "http-ndjson": "^3.1.0",
