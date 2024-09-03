@@ -225,3 +225,11 @@ const customLogger = pino({
 pinoHttp({
   logger: customLogger
 }).logger.bark("arf arf");
+pinoHttp({
+  logger: customLogger,
+  useLevel: 'bark'
+})
+pinoHttp({
+  logger: customLogger,
+  customLogLevel: () => 'bark'
+})
