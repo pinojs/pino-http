@@ -24,7 +24,7 @@
     "tap": "^18.7.2",
     "ts-node": "^10.3.0",
     "tsd": "^0.31.0",
-    "typescript": "~5.0.2"
+    "typescript": "~5.6.3"
   },
   "scripts": {
     "benchmark": "bash ./scripts/benchmark-all",
