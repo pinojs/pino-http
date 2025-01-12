@@ -154,7 +154,7 @@ function pinoLogger (opts, stream) {
     if (!res.log) {
       res.log = responseLogger
     }
-    if (!res.allLogs) {
+    if (Array.isArray(res.allLogs) === false) {
       res.allLogs = []
     }
     res.allLogs.push(responseLogger)

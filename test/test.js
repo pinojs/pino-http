@@ -128,6 +128,32 @@ test('internal pino logger not shared between multiple middleware', function (t)
   t.not(middleware1.logger, middleware2.logger, 'expected loggers not to be shared between middleware invocations')
 })
 
+test('req.allLogs is correctly created if it does not exist', function (t) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+
+  function handler (req, res) {
+    delete req.allLogs
+
+    logger(req, res)
+
+    t.ok(Array.isArray(req.allLogs), 'req.allLogs should be an array')
+    t.equal(req.allLogs.length, 1, 'req.allLogs should have one logger entry')
+    t.equal(typeof req.allLogs[0].info, 'function', 'req.allLogs should contain a valid logger instance')
+
+    res.end('hello world')
+  }
+
+  setup(t, logger, function (err, server) {
+    t.error(err)
+    doGet(server)
+  }, handler)
+
+  dest.on('data', function () {
+    t.end()
+  })
+})
+
 test('when multiple pino middleware are present each pino logger retains its own redact config', function (t) {
   t.plan(6)
 
