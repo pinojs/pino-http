@@ -48,6 +48,9 @@ pinoHttp<CustomRequest, CustomResponse>({ customSuccessMessage: (req: CustomRequ
 // #customErrorMessage
 pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error) => `Error - ${error}` });
 pinoHttp<CustomRequest, CustomResponse>({ customErrorMessage: (req: CustomRequest, res: CustomResponse, error: Error) => `Error - ${error}` });
+pinoHttp({
+  customErrorMessage: (req, res, error, responseTime) => `Error - ${error.message} after ${responseTime}ms`
+});
 
 // #customAttributeKeys
 pinoHttp({ customAttributeKeys: { req: 'req' } });
@@ -232,4 +235,7 @@ pinoHttp({
 pinoHttp({
   logger: customLogger,
   customLogLevel: () => 'bark'
+})
+pinoHttp({
+  customErrorMessage: (req, res, error, responseTime) => `Error - ${error.message} after ${responseTime}ms`
 })
