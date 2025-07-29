@@ -236,6 +236,3 @@ pinoHttp({
   logger: customLogger,
   customLogLevel: () => 'bark'
 })
-pinoHttp({
-  customErrorMessage: (req, res, error, responseTime) => `Error - ${error.message} after ${responseTime}ms`
-})
