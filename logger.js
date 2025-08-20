@@ -77,7 +77,6 @@ function pinoLogger (opts, stream) {
   delete opts.customErroredMessage
 
   const quietReqLogger = !!opts.quietReqLogger
-  const quietResLogger = !!opts.quietResLogger
 
   const logger = wrapChild(opts, theStream)
 
@@ -148,16 +147,15 @@ function pinoLogger (opts, stream) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
     }
 
-    const responseLogger = quietResLogger ? log : fullReqLogger
     const requestLogger = quietReqLogger ? log : fullReqLogger
 
     if (!res.log) {
-      res.log = responseLogger
+      res.log = requestLogger
     }
     if (Array.isArray(res.allLogs) === false) {
       res.allLogs = []
     }
-    res.allLogs.push(responseLogger)
+    res.allLogs.push(requestLogger)
 
     if (!req.log) {
       req.log = requestLogger
@@ -175,7 +173,7 @@ function pinoLogger (opts, stream) {
       res.removeListener('close', onResponseComplete)
       res.removeListener('finish', onResponseComplete)
       res.removeListener('error', onResponseComplete)
-      return onResFinished(res, responseLogger, err)
+      return onResFinished(res, fullReqLogger, err)
     }
 
     if (autoLogging) {
@@ -192,7 +190,7 @@ function pinoLogger (opts, stream) {
           const receivedObjectResult = onRequestReceivedObject !== undefined ? onRequestReceivedObject(req, res, undefined) : {}
           const receivedStringResult = receivedMessage !== undefined ? receivedMessage(req, res) : undefined
 
-          requestLogger[level](receivedObjectResult, receivedStringResult)
+          fullReqLogger[level](receivedObjectResult, receivedStringResult)
         }
 
         res.on('close', onResponseComplete)

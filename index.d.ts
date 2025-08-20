@@ -39,7 +39,6 @@ export interface Options<IM = IncomingMessage, SR = ServerResponse, CustomLevels
     wrapSerializers?: boolean | undefined;
     customProps?: ((req: IM, res: SR) => object) | undefined;
     quietReqLogger?: boolean | undefined;
-    quietResLogger?: boolean | undefined;
 }
 
 export interface GenReqId<IM = IncomingMessage, SR = ServerResponse> {

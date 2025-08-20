@@ -155,7 +155,6 @@ const options: Options = {
   wrapSerializers: canBeUndefined(rtnBool()),
   customProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
   quietReqLogger: canBeUndefined(rtnBool()),
-  quietResLogger: canBeUndefined(rtnBool()),
 }
 
 // can't pass 'useLevel' and 'customLogLevel' together

@@ -109,8 +109,7 @@ $ node example.js | pino-pretty
 * `customAttributeKeys`: allows the log object attributes added by `pino-http` to be given custom keys. Accepts an object of format `{ [original]: [override] }`. Attributes available for override are `req`, `res`, `err`, `responseTime` and, when using quietReqLogger, `reqId`.
 * `wrapSerializers`: when `false`, custom serializers will be passed the raw value directly. Defaults to `true`.
 * `customProps`: set to a `function (req, res) => { /* returns on object */ }` or `{ /* returns on object */ }` This function will be invoked for each request with `req` and `res` where we could pass additional properties that need to be logged outside the `req`.
-* `quietReqLogger`: when `true`, the child logger available on `req.log` will no longer contain the full bindings and will now only have the request id bound at `reqId` (note: the autoLogging messages and the logger available on `res.log` will remain the same except they will also have the additional `reqId` property). default: `false`
-* `quietResLogger`: when `true`, the child logger available on `res.log` will no longer contain the full bindings and will now only have the request id bound at `reqId` (note: the autoLogging message sent on request completion will only contain `req`). default: `false`
+* `quietReqLogger`: when `true`, the child logger available on `req.log` and `res.log` will no longer contain the full bindings and will now only have the request id bound at `reqId` (note: the autoLogging messages will remain the same except they will also have the additional `reqId` property). default: `false`
 
 `stream`: the destination stream. Could be passed in as an option too.
 
