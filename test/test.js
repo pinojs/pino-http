@@ -1,13 +1,16 @@
 'use strict'
 
-const test = require('tap').test
-const http = require('http')
-const net = require('net')
-const stream = require('stream')
+const test = require('node:test')
+const assert = require('node:assert')
+const http = require('node:http')
+const net = require('node:net')
+const stream = require('node:stream')
+const { join } = require('node:path')
+const split = require('split2')
+const tspl = require('@matteo.collina/tspl')
+
 const pinoHttp = require('../')
 const pino = require('pino')
-const split = require('split2')
-const { join } = require('path')
 
 const ERROR_URL = '/make-error'
 const noop = function () {}
@@ -35,7 +38,7 @@ function setup (t, logger, cb, handler, next) {
   server.listen(0, '127.0.0.1', function (err) {
     cb(err || null, server)
   })
-  t.teardown(function (cb) {
+  t.after(function (cb) {
     server.close(cb)
   })
 
@@ -49,47 +52,45 @@ function doGet (server, path, callback) {
   return http.get('http://' + address.address + ':' + address.port + path, cb)
 }
 
-test('default settings', function (t) {
+test('default settings', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.req, 'req is defined')
-    t.ok(line.res, 'res is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
-    t.equal(line.req.method, 'GET', 'method is get')
-    t.equal(line.res.statusCode, 200, 'statusCode is 200')
-    t.end()
+    assert.ok(line.req, 'req is defined')
+    assert.ok(line.res, 'res is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
+    assert.equal(line.req.method, 'GET', 'method is get')
+    assert.equal(line.res.statusCode, 200, 'statusCode is 200')
+    end()
   })
 })
 
-test('stream in options', function (t) {
+test('stream in options', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ stream: dest })
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.req, 'req is defined')
-    t.ok(line.res, 'res is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
-    t.equal(line.req.method, 'GET', 'method is get')
-    t.equal(line.res.statusCode, 200, 'statusCode is 200')
-    t.end()
+    assert.ok(line.req, 'req is defined')
+    assert.ok(line.res, 'res is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
+    assert.equal(line.req.method, 'GET', 'method is get')
+    assert.equal(line.res.statusCode, 200, 'statusCode is 200')
+    end()
   })
 })
 
-test('add transport.caller information when missing', function (t) {
-  t.plan(1)
-
+test('add transport.caller information when missing', function () {
   const options = {
     transport: {
       targets: [
@@ -100,35 +101,30 @@ test('add transport.caller information when missing', function (t) {
 
   const logger = pinoHttp(options)
   logger.logger.info('hello world')
-  t.equal(options.transport.caller, join(__dirname, '../logger.js'), 'caller is set')
-  t.end()
+  assert.equal(options.transport.caller, join(__dirname, '../logger.js'), 'caller is set')
 })
 
-test('exposes the internal pino', function (t) {
-  t.plan(1)
-
+test('exposes the internal pino', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
   dest.on('data', function (line) {
-    t.equal(line.msg, 'hello world')
-    t.end()
+    assert.equal(line.msg, 'hello world')
+    end()
   })
 
   logger.logger.info('hello world')
 })
 
 test('internal pino logger not shared between multiple middleware', function (t) {
-  t.plan(1)
-
   const dest = split(JSON.parse)
   const middleware1 = pinoHttp(dest)
   const middleware2 = pinoHttp(dest)
 
-  t.not(middleware1.logger, middleware2.logger, 'expected loggers not to be shared between middleware invocations')
+  assert.equal(middleware1.logger !== middleware2.logger, true, 'expected loggers not to be shared between middleware invocations')
 })
 
-test('req.allLogs is correctly created if it does not exist', function (t) {
+test('req.allLogs is correctly created if it does not exist', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
@@ -137,25 +133,25 @@ test('req.allLogs is correctly created if it does not exist', function (t) {
 
     logger(req, res)
 
-    t.ok(Array.isArray(req.allLogs), 'req.allLogs should be an array')
-    t.equal(req.allLogs.length, 1, 'req.allLogs should have one logger entry')
-    t.equal(typeof req.allLogs[0].info, 'function', 'req.allLogs should contain a valid logger instance')
+    assert.ok(Array.isArray(req.allLogs), 'req.allLogs should be an array')
+    assert.equal(req.allLogs.length, 1, 'req.allLogs should have one logger entry')
+    assert.equal(typeof req.allLogs[0].info, 'function', 'req.allLogs should contain a valid logger instance')
 
     res.end('hello world')
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   }, handler)
 
   dest.on('data', function () {
-    t.end()
+    end()
   })
 })
 
-test('when multiple pino middleware are present each pino logger retains its own redact config', function (t) {
-  t.plan(6)
+test('when multiple pino middleware are present each pino logger retains its own redact config', async function (t) {
+  const plan = tspl(t, { plan: 6 })
 
   const middleware1Output = split(JSON.parse)
   const middleware2Output = split(JSON.parse)
@@ -168,43 +164,45 @@ test('when multiple pino middleware are present each pino logger retains its own
     middleware1(req, res, next)
     middleware2(req, res, next)
     middleware3(req, res, next)
-    t.ok(req.log, 'pino http middleware should have set request log logger to middleware1\'s logger')
-    t.equal(req.allLogs.length, 3, 'multiple pino http middleware should have set request additional loggers')
+    plan.ok(req.log, 'pino http middleware should have set request log logger to middleware1\'s logger')
+    plan.equal(req.allLogs.length, 3, 'multiple pino http middleware should have set request additional loggers')
   }, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, '/')
   })
 
   middleware1Output.on('data', function (line) {
-    t.equal(line.req.method, '[Redacted]', 'method is Redacted')
+    plan.equal(line.req.method, '[Redacted]', 'method is Redacted')
   })
 
   middleware2Output.on('data', function (line) {
-    t.equal(line.req.url, '[Redacted]', 'url is Redacted')
+    plan.equal(line.req.url, '[Redacted]', 'url is Redacted')
   })
 
   middleware3Output.on('data', function (line) {
-    t.equal(line.req.method, 'GET', 'method is get and not redacted')
+    plan.equal(line.req.method, 'GET', 'method is get and not redacted')
   })
+
+  await plan
 })
 
-test('uses the log level passed in as an option', function (t) {
+test('uses the log level passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ useLevel: 'debug', level: 'debug' }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 20, 'level')
-    t.notOk(line.useLevel, 'useLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 20, 'level')
+    assert.equal(line.useLevel, undefined, 'useLevel not forwarded')
+    end()
   })
 })
 
-test('uses the custom log level passed in as an option', function (t) {
+test('uses the custom log level passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customLogLevel: function (_req, _res, _err) {
@@ -213,38 +211,38 @@ test('uses the custom log level passed in as an option', function (t) {
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 40, 'level')
-    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 40, 'level')
+    assert.equal(line.customLogLevel, undefined, 'customLogLevel not forwarded')
+    end()
   })
 })
 
-test('uses the custom log level passed in as an option, req and res is defined', function (t) {
+test('uses the custom log level passed in as an option, req and res is defined', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customLogLevel: function (_req, _res, _err) {
-      t.ok(_req, 'req is defined')
-      t.ok(_res, 'res is defined')
+      assert.ok(_req, 'req is defined')
+      assert.ok(_res, 'res is defined')
 
       return 'warn'
     }
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
   dest.on('data', function () {
-    t.end()
+    end()
   })
 })
 
-test('uses the log level passed in as an option, where the level is a custom one', function (t) {
+test('uses the log level passed in as an option, where the level is a custom one', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
     {
@@ -258,18 +256,18 @@ test('uses the log level passed in as an option, where the level is a custom one
   )
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 25, 'level')
-    t.notOk(line.useLevel, 'useLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 25, 'level')
+    assert.equal(line.useLevel, undefined, 'useLevel not forwarded')
+    end()
   })
 })
 
-test('uses the custom log level passed in as an option, where the level itself is also a custom one', function (t) {
+test('uses the custom log level passed in as an option, where the level itself is also a custom one', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
     {
@@ -284,18 +282,18 @@ test('uses the custom log level passed in as an option, where the level itself i
   )
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 35, 'level')
-    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 35, 'level')
+    assert.equal(line.customLogLevel, undefined, 'customLogLevel not forwarded')
+    end()
   })
 })
 
-test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
+test('no autoLogging if useLevel or customLogLevel is silent', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(
     {
@@ -307,21 +305,21 @@ test('no autoLogging if useLevel or customLogLevel is silent', function (t) {
   )
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, null, function () {
       const line = dest.read()
-      t.equal(line, null)
-      t.end()
+      assert.equal(line, null)
+      end()
     })
   })
 })
 
-test('uses the custom invalid log level passed in as an option', function (t) {
+test('uses the custom invalid log level passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customLogLevel: function (_req, _res, _err) {
@@ -330,14 +328,14 @@ test('uses the custom invalid log level passed in as an option', function (t) {
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 30, 'level')
-    t.notOk(line.customLogLevel, 'customLogLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 30, 'level')
+    assert.equal(line.customLogLevel, undefined, 'customLogLevel not forwarded')
+    end()
   })
 })
 
@@ -351,58 +349,60 @@ test('throw error if custom log level and log level passed in together', functio
       }
     }, dest)
   }
-  t.throws(throwFunction, { message: 'You can\'t pass \'useLevel\' and \'customLogLevel\' together' })
-  t.end()
+  assert.throws(throwFunction, { message: 'You can\'t pass \'useLevel\' and \'customLogLevel\' together' })
 })
 
-test('allocate a unique id to every request', function (t) {
-  t.plan(5)
+test('allocate a unique id to every request', async function (t) {
+  const plan = tspl(t, { plan: 5 })
 
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
   let lastId = null
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.not(line.req.id, lastId)
+    plan.equal(line.req.id !== lastId, true)
     lastId = line.req.id
-    t.ok(line.req.id, 'req.id is defined')
+    plan.ok(line.req.id, 'req.id is defined')
   })
+
+  await plan
 })
 
-test('uses a custom genReqId function', function (t) {
-  t.plan(5)
+test('uses a custom genReqId function', async function (t) {
+  const plan = tspl(t, { plan: 5 })
 
   const dest = split(JSON.parse)
   let idToTest
 
   function genReqId (req, res) {
-    t.ok(res, 'res is defined')
-    t.ok(req.url, 'The first argument must be the request parameter')
+    plan.ok(res, 'res is defined')
+    plan.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest
   }
 
   const logger = pinoHttp({ genReqId }, dest)
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(typeof line.req.id, 'string')
-    t.equal(line.req.id, idToTest)
-    t.end()
+    plan.equal(typeof line.req.id, 'string')
+    plan.equal(line.req.id, idToTest)
   })
+
+  await plan
 })
 
-test('reuses existing req.id if present', function (t) {
-  t.plan(2)
+test('reuses existing req.id if present', async function (t) {
+  const plan = tspl(t, { plan: 2 })
 
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
@@ -414,72 +414,73 @@ test('reuses existing req.id if present', function (t) {
   }
 
   setup(t, loggerWithExistingReqId, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.req.id, someId)
-    t.end()
+    plan.equal(line.req.id, someId)
   })
+
+  await plan
 })
 
-test('startTime', function (t) {
+test('startTime', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
   const someStartTime = 56
 
-  t.equal(typeof pinoHttp.startTime, 'symbol')
+  assert.equal(typeof pinoHttp.startTime, 'symbol')
 
   function loggerWithStartTime (req, res) {
     res[pinoHttp.startTime] = someStartTime
     logger(req, res)
-    t.equal(res[pinoHttp.startTime], someStartTime)
+    assert.equal(res[pinoHttp.startTime], someStartTime)
   }
 
   setup(t, loggerWithStartTime, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(typeof line.responseTime, 'number')
-    t.end()
+    assert.equal(typeof line.responseTime, 'number')
+    end()
   })
 })
 
-test('responseTime', function (t) {
+test('responseTime', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.responseTime >= 0, 'responseTime is defined')
-    t.end()
+    assert.ok(line.responseTime >= 0, 'responseTime is defined')
+    end()
   })
 })
 
-test('responseTime for errored request', function (t) {
+test('responseTime for errored request', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.responseTime >= 0, 'responseTime is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_ERROR_MSG, 'message is set')
-    t.end()
+    assert.ok(line.responseTime >= 0, 'responseTime is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_ERROR_MSG, 'message is set')
+    end()
   })
 })
 
-test('responseTime for request emitting error event', function (t) {
+test('responseTime for request emitting error event', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
@@ -490,18 +491,18 @@ test('responseTime for request emitting error event', function (t) {
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   }, handle)
 
   dest.on('data', function (line) {
-    t.ok(line.responseTime >= 0, 'responseTime is defined')
-    t.end()
+    assert.ok(line.responseTime >= 0, 'responseTime is defined')
+    end()
   })
 })
 
 // TODO(mcollina): fix this test
-test('log requests aborted during payload', { skip: true }, function (t) {
+test('log requests aborted during payload', { skip: true }, function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
@@ -523,7 +524,7 @@ test('log requests aborted during payload', { skip: true }, function (t) {
   }
 
   function listen (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
 
     const client = net.connect(server.address().port, server.address().address, () => {
       client.write('GET /delayed HTTP/1.1\r\nHost: localhost\r\n\r\n')
@@ -537,13 +538,13 @@ test('log requests aborted during payload', { skip: true }, function (t) {
   setup(t, logger, listen, handle)
 
   dest.on('data', function (line) {
-    t.ok(line.responseTime >= 0, 'responseTime is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
-    t.end()
+    assert.ok(line.responseTime >= 0, 'responseTime is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
+    end()
   })
 })
 
-test('log requests aborted on the server', function (t) {
+test('log requests aborted on the server', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp(dest)
 
@@ -555,7 +556,7 @@ test('log requests aborted on the server', function (t) {
   }
 
   function listen (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     const client = doGet(server)
 
     client.on('error', function () {
@@ -566,27 +567,27 @@ test('log requests aborted on the server', function (t) {
   setup(t, logger, listen, handle)
 
   dest.on('data', function (line) {
-    t.ok(line.responseTime >= 0, 'responseTime is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
-    t.end()
+    assert.ok(line.responseTime >= 0, 'responseTime is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_ABORTED_MSG, 'message is set')
+    end()
   })
 })
 
-test('no auto logging with autoLogging set to false', function (t) {
+test('no auto logging with autoLogging set to false', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({ autoLogging: false }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, null, function () {
       const line = dest.read()
-      t.equal(line, null)
-      t.end()
+      assert.equal(line, null)
+      end()
     })
   })
 })
 
-test('autoLogging set to true and path not ignored', test => {
+test('autoLogging set to true and path not ignored', (t, end) => {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     autoLogging: {
@@ -595,17 +596,17 @@ test('autoLogging set to true and path not ignored', test => {
   }, dest)
 
   setup(test, logger, function (err, server) {
-    test.error(err)
+    assert.equal(err, undefined)
     doGet(server, '/shouldlogthis')
   })
 
   dest.on('data', function (line) {
-    test.pass('path should log')
-    test.end()
+    assert.ok('path should log')
+    end()
   })
 })
 
-test('no auto logging with autoLogging set to true and ignoring a specific user-agent', function (t) {
+test('no auto logging with autoLogging set to true and ignoring a specific user-agent', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     autoLogging: {
@@ -616,7 +617,7 @@ test('no auto logging with autoLogging set to true and ignoring a specific user-
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
 
     const { address, port } = server.address()
     http.get({
@@ -627,41 +628,41 @@ test('no auto logging with autoLogging set to true and ignoring a specific user-
       headers: { 'User-Agent': 'ELB-HealthChecker/2.0' }
     }, function () {
       const line = dest.read()
-      t.equal(line, null)
-      t.end()
+      assert.equal(line, null)
+      end()
     })
   })
 })
 
-test('support a custom instance', function (t) {
+test('support a custom instance', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest)
   })
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.req, 'req is defined')
-    t.ok(line.res, 'res is defined')
-    t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
-    t.equal(line.req.method, 'GET', 'method is get')
-    t.equal(line.res.statusCode, 200, 'statusCode is 200')
-    t.end()
+    assert.ok(line.req, 'req is defined')
+    assert.ok(line.res, 'res is defined')
+    assert.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
+    assert.equal(line.req.method, 'GET', 'method is get')
+    assert.equal(line.res.statusCode, 200, 'statusCode is 200')
+    end()
   })
 })
 
-test('support a custom instance with custom genReqId function', function (t) {
+test('support a custom instance with custom genReqId function', function (t, end) {
   const dest = split(JSON.parse)
 
   let idToTest
 
   function genReqId (req, res) {
-    t.ok(res, 'res is defined')
-    t.ok(req.url, 'The first argument must be the request parameter')
+    assert.ok(res, 'res is defined')
+    assert.ok(req.url, 'The first argument must be the request parameter')
     idToTest = (Date.now() + Math.random()).toString(32)
     return idToTest
   }
@@ -672,22 +673,22 @@ test('support a custom instance with custom genReqId function', function (t) {
   })
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.req, 'req is defined')
-    t.ok(line.res, 'res is defined')
-    t.notOk(line.genReqId)
-    t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
-    t.equal(line.req.method, 'GET', 'method is get')
-    t.equal(line.res.statusCode, 200, 'statusCode is 200')
-    t.end()
+    assert.ok(line.req, 'req is defined')
+    assert.ok(line.res, 'res is defined')
+    assert.equal(line.genReqId, undefined)
+    assert.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG, 'message is set')
+    assert.equal(line.req.method, 'GET', 'method is get')
+    assert.equal(line.res.statusCode, 200, 'statusCode is 200')
+    end()
   })
 })
 
-test('support a custom instance with one of its customLevels as useLevel', function (t) {
+test('support a custom instance with one of its customLevels as useLevel', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino({
@@ -700,31 +701,34 @@ test('support a custom instance with one of its customLevels as useLevel', funct
   })
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.level, 25, 'level')
-    t.notOk(line.useLevel, 'useLevel not forwarded')
-    t.end()
+    assert.equal(line.level, 25, 'level')
+    assert.equal(line.useLevel, undefined, 'useLevel not forwarded')
+    end()
   })
 })
 
-test('does not crash when no request connection object', function (t) {
+test('does not crash when no request connection object', async function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest)
   })
-  t.plan(1)
+  const plan = tspl(t, { plan: 1 })
 
   const server = http.createServer(handler)
   server.unref()
   server.listen(9999, () => {
     http.get('http://127.0.0.1:9999', (res) => {
-      t.pass('made it through logic path without crashing')
+      plan.ok('made it through logic path without crashing')
+      server.close()
     })
   })
+
+  await plan
 
   function handler (req, res) {
     delete req.connection
@@ -734,7 +738,7 @@ test('does not crash when no request connection object', function (t) {
 })
 
 // https://github.com/pinojs/pino-http/issues/42
-test('does not return excessively long object', function (t) {
+test('does not return excessively long object', async function (t) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
@@ -745,12 +749,12 @@ test('does not return excessively long object', function (t) {
       }
     }
   })
-  t.plan(1)
+  const plan = tspl(t, { plan: 1 })
 
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
 
   function handler (req, res) {
@@ -759,21 +763,21 @@ test('does not return excessively long object', function (t) {
   }
 
   dest.on('data', function (obj) {
-    t.equal(Object.keys(obj.req).length, 6)
-    t.end()
+    plan.equal(Object.keys(obj.req).length, 6)
   })
+
+  await plan
 })
 
-test('err.raw is available to custom serializers', function (t) {
-  t.plan(1)
+test('err.raw is available to custom serializers', async function (t) {
+  const plan = tspl(t, { plan: 1 })
   const error = new Error('foo')
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       err (err) {
-        t.equal(err.raw, error)
-        t.end()
+        plan.equal(err.raw, error)
       }
     }
   })
@@ -785,19 +789,21 @@ test('err.raw is available to custom serializers', function (t) {
   })
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 })
 
-test('req.raw is available to custom serializers', function (t) {
-  t.plan(2)
+test('req.raw is available to custom serializers', async function (t) {
+  const plan = tspl(t, { plan: 2 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       req: function (req) {
-        t.ok(req.raw)
-        t.ok(req.raw.connection)
+        plan.ok(req.raw)
+        plan.ok(req.raw.connection)
         return req
       }
     }
@@ -806,8 +812,10 @@ test('req.raw is available to custom serializers', function (t) {
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 
   function handler (req, res) {
     logger(req, res)
@@ -815,16 +823,15 @@ test('req.raw is available to custom serializers', function (t) {
   }
 })
 
-test('res.raw is available to custom serializers', function (t) {
-  t.plan(2)
+test('res.raw is available to custom serializers', async function (t) {
+  const plan = tspl(t, { plan: 2 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       res: function (res) {
-        t.ok(res.raw)
-        t.ok(res.raw.statusCode)
-        t.end()
+        plan.ok(res.raw)
+        plan.ok(res.raw.statusCode)
         return res
       }
     }
@@ -833,8 +840,10 @@ test('res.raw is available to custom serializers', function (t) {
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 
   function handler (req, res) {
     logger(req, res)
@@ -842,15 +851,14 @@ test('res.raw is available to custom serializers', function (t) {
   }
 })
 
-test('res.raw is not enumerable', function (t) {
-  t.plan(1)
+test('res.raw is not enumerable', async function (t) {
+  const plan = tspl(t, { plan: 1 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       res: function (res) {
-        t.equal(Object.prototype.propertyIsEnumerable.call(res, 'raw'), false)
-        t.end()
+        plan.equal(Object.prototype.propertyIsEnumerable.call(res, 'raw'), false)
         return res
       }
     }
@@ -859,8 +867,10 @@ test('res.raw is not enumerable', function (t) {
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 
   function handler (req, res) {
     logger(req, res)
@@ -868,16 +878,18 @@ test('res.raw is not enumerable', function (t) {
   }
 })
 
-test('err.raw, req.raw and res.raw are passed into custom serializers directly, when opts.wrapSerializers is false', (t) => {
-  t.plan(6)
+test('err.raw, req.raw and res.raw are passed into custom serializers directly, when opts.wrapSerializers is false', async (t) => {
+  const plan = tspl(t, { plan: 6 })
   const error = new Error('foo')
   const dest = split(JSON.parse)
 
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 
   function handler (request, response) {
     const logger = pinoHttp({
@@ -885,18 +897,18 @@ test('err.raw, req.raw and res.raw are passed into custom serializers directly, 
       wrapSerializers: false,
       serializers: {
         err: function (err) {
-          t.notOk(err.raw)
-          t.equal(err, error)
+          plan.equal(err.raw, undefined)
+          plan.equal(err, error)
           return err
         },
         req: function (req) {
-          t.notOk(req.raw)
-          t.equal(req, request)
+          plan.equal(req.raw, undefined)
+          plan.equal(req, request)
           return req
         },
         res: function (res) {
-          t.notOk(res.raw)
-          t.equal(res, response)
+          plan.equal(res.raw, undefined)
+          plan.equal(res, response)
           return res
         }
       }
@@ -907,15 +919,14 @@ test('err.raw, req.raw and res.raw are passed into custom serializers directly, 
   }
 })
 
-test('req.id has a non-function value', function (t) {
-  t.plan(1)
+test('req.id has a non-function value', async function (t) {
+  const plan = tspl(t, { plan: 1 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
     serializers: {
       req: function (req) {
-        t.equal(typeof req.id === 'function', false)
-        t.end()
+        plan.equal(typeof req.id === 'function', false)
         return req
       }
     }
@@ -924,8 +935,10 @@ test('req.id has a non-function value', function (t) {
   const server = http.createServer(handler)
   server.unref()
   server.listen(0, () => {
-    http.get(server.address(), () => {})
+    http.get(server.address(), () => { server.close() })
   })
+
+  await plan
 
   function handler (req, res) {
     logger(req, res)
@@ -933,7 +946,7 @@ test('req.id has a non-function value', function (t) {
   }
 })
 
-test('uses the custom successMessage callback if passed in as an option', function (t) {
+test('uses the custom successMessage callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const customResponseMessage = 'Custom response message'
   const logger = pinoHttp({
@@ -943,17 +956,17 @@ test('uses the custom successMessage callback if passed in as an option', functi
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg, customResponseMessage + ' GET')
-    t.end()
+    assert.equal(line.msg, customResponseMessage + ' GET')
+    end()
   })
 })
 
-test('pass responseTime argument to the custom successMessage callback', function (t) {
+test('pass responseTime argument to the custom successMessage callback', function (t, end) {
   const dest = split(JSON.parse)
   const customResponseMessage = 'Response time is: '
   const logger = pinoHttp({
@@ -963,17 +976,17 @@ test('pass responseTime argument to the custom successMessage callback', functio
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.match(line.msg, /Response time is: \d+ GET/)
-    t.end()
+    assert.match(line.msg, /Response time is: \d+ GET/)
+    end()
   })
 })
 
-test('pass responseTime argument to the custom errorMessage callback', function (t) {
+test('pass responseTime argument to the custom errorMessage callback', function (t, end) {
   const dest = split(JSON.parse)
   const customErrorMessage = 'Response time is:'
   const logger = pinoHttp({
@@ -983,17 +996,17 @@ test('pass responseTime argument to the custom errorMessage callback', function 
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.match(line.msg, /Response time is: \d+ GET/)
-    t.end()
+    assert.match(line.msg, /Response time is: \d+ GET/)
+    end()
   })
 })
 
-test('uses the custom successObject callback if passed in as an option', function (t) {
+test('uses the custom successObject callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customSuccessObject: function (req, res, val) {
@@ -1002,17 +1015,17 @@ test('uses the custom successObject callback if passed in as an option', functio
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.label, 'GET customSuccessObject')
-    t.end()
+    assert.equal(line.label, 'GET customSuccessObject')
+    end()
   })
 })
 
-test('uses the custom receivedMessage callback if passed in as an option', function (t) {
+test('uses the custom receivedMessage callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
@@ -1022,7 +1035,7 @@ test('uses the custom receivedMessage callback if passed in as an option', funct
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
@@ -1030,12 +1043,12 @@ test('uses the custom receivedMessage callback if passed in as an option', funct
     if (line.msg === DEFAULT_REQUEST_COMPLETED_MSG) {
       return
     }
-    t.equal(line.msg, message)
-    t.end()
+    assert.equal(line.msg, message)
+    end()
   })
 })
 
-test('uses the custom receivedObject callback if passed in as an option', function (t) {
+test('uses the custom receivedObject callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customReceivedObject: function (req, val) {
@@ -1044,7 +1057,7 @@ test('uses the custom receivedObject callback if passed in as an option', functi
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
@@ -1053,12 +1066,12 @@ test('uses the custom receivedObject callback if passed in as an option', functi
       return
     }
 
-    t.equal(line.label, 'GET customReceivedObject')
-    t.end()
+    assert.equal(line.label, 'GET customReceivedObject')
+    end()
   })
 })
 
-test('uses the custom receivedObject + receivedMessage callback if passed in as an option', function (t) {
+test('uses the custom receivedObject + receivedMessage callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customReceivedMessage: function (_req, _res) {
@@ -1071,7 +1084,7 @@ test('uses the custom receivedObject + receivedMessage callback if passed in as 
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
@@ -1080,14 +1093,14 @@ test('uses the custom receivedObject + receivedMessage callback if passed in as 
       return
     }
 
-    t.equal(line.msg, DEFAULT_REQUEST_RECEIVED_MSG)
-    t.equal(line.label, 'GET customReceivedObject')
-    t.end()
+    assert.equal(line.msg, DEFAULT_REQUEST_RECEIVED_MSG)
+    assert.equal(line.label, 'GET customReceivedObject')
+    end()
   })
 })
 
-test('receve receivedMessage before successMessage', function (t) {
-  t.plan(3)
+test('receive receivedMessage before successMessage', async function (t) {
+  const plan = tspl(t, { plan: 3 })
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
@@ -1097,18 +1110,17 @@ test('receve receivedMessage before successMessage', function (t) {
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
-      t.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
-
-      t.equal(dest.read().msg, DEFAULT_REQUEST_COMPLETED_MSG)
-
-      t.end()
+      plan.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
+      plan.equal(dest.read().msg, DEFAULT_REQUEST_COMPLETED_MSG)
     })
   })
+
+  await plan
 })
 
-test('uses the custom errorMessage callback if passed in as an option', function (t) {
+test('uses the custom errorMessage callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const customErrorMessage = 'Custom error message'
   const logger = pinoHttp({
@@ -1118,17 +1130,17 @@ test('uses the custom errorMessage callback if passed in as an option', function
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.msg.indexOf(customErrorMessage + ' GET'), 0)
-    t.end()
+    assert.equal(line.msg.indexOf(customErrorMessage + ' GET'), 0)
+    end()
   })
 })
 
-test('uses the custom errorObject callback if passed in as an option', function (t) {
+test('uses the custom errorObject callback if passed in as an option', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customErrorObject: function (req, res, err, val) {
@@ -1137,18 +1149,18 @@ test('uses the custom errorObject callback if passed in as an option', function 
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.label.indexOf('customErrorObject GET'), 0)
-    t.end()
+    assert.equal(line.label.indexOf('customErrorObject GET'), 0)
+    end()
   })
 })
 
-test('receve receivedMessage before errorMessage', function (t) {
-  t.plan(3)
+test('receive receivedMessage before errorMessage', async function (t) {
+  const plan = tspl(t, { plan: 3 })
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
@@ -1158,18 +1170,17 @@ test('receve receivedMessage before errorMessage', function (t) {
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, ERROR_URL, function () {
-      t.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
-
-      t.equal(dest.read().msg, DEFAULT_REQUEST_ERROR_MSG)
-
-      t.end()
+      plan.equal(dest.read().msg, DEFAULT_REQUEST_RECEIVED_MSG)
+      plan.equal(dest.read().msg, DEFAULT_REQUEST_ERROR_MSG)
     })
   })
+
+  await plan
 })
 
-test('uses custom log object attribute keys when provided, successful request', function (t) {
+test('uses custom log object attribute keys when provided, successful request', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customAttributeKeys: {
@@ -1181,19 +1192,19 @@ test('uses custom log object attribute keys when provided, successful request', 
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.httpReq, 'httpReq is defined')
-    t.ok(line.httpRes, 'httpRes is defined')
-    t.equal(typeof line.timeTaken, 'number')
-    t.end()
+    assert.ok(line.httpReq, 'httpReq is defined')
+    assert.ok(line.httpRes, 'httpRes is defined')
+    assert.equal(typeof line.timeTaken, 'number')
+    end()
   })
 })
 
-test('uses custom log object attribute keys when provided, error request', function (t) {
+test('uses custom log object attribute keys when provided, error request', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customAttributeKeys: {
@@ -1205,20 +1216,20 @@ test('uses custom log object attribute keys when provided, error request', funct
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.httpReq, 'httpReq is defined')
-    t.ok(line.httpRes, 'httpRes is defined')
-    t.ok(line.httpErr, 'httpRes is defined')
-    t.equal(typeof line.timeTaken, 'number')
-    t.end()
+    assert.ok(line.httpReq, 'httpReq is defined')
+    assert.ok(line.httpRes, 'httpRes is defined')
+    assert.ok(line.httpErr, 'httpRes is defined')
+    assert.equal(typeof line.timeTaken, 'number')
+    end()
   })
 })
 
-test('uses custom request properties to log additional attributes when provided', function (t) {
+test('uses custom request properties to log additional attributes when provided', function (t, end) {
   const dest = split(JSON.parse)
 
   function customPropsHandler (req, res) {
@@ -1235,18 +1246,18 @@ test('uses custom request properties to log additional attributes when provided'
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.key1, 'value1')
-    t.equal(line.key2, 'value2')
-    t.end()
+    assert.equal(line.key1, 'value1')
+    assert.equal(line.key2, 'value2')
+    end()
   })
 })
 
-test('uses old custom request properties interface to log additional attributes', function (t) {
+test('uses old custom request properties interface to log additional attributes', function (t, end) {
   const dest = split(JSON.parse)
 
   function customPropsHandler (req, res) {
@@ -1263,18 +1274,18 @@ test('uses old custom request properties interface to log additional attributes'
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.key1, 'value1')
-    t.equal(line.key2, 'value2')
-    t.end()
+    assert.equal(line.key1, 'value1')
+    assert.equal(line.key2, 'value2')
+    end()
   })
 })
 
-test('uses custom request properties to log additional attributes when response provided', function (t) {
+test('uses custom request properties to log additional attributes when response provided', function (t, end) {
   const dest = split(JSON.parse)
 
   function customPropsHandler (req, res) {
@@ -1291,18 +1302,18 @@ test('uses custom request properties to log additional attributes when response 
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.key1, 'value1')
-    t.equal(line.key2, 500)
-    t.end()
+    assert.equal(line.key1, 'value1')
+    assert.equal(line.key2, 500)
+    end()
   })
 })
 
-test('uses custom request properties and a receivedMessage callback and the properties are set on the receivedMessage', function (t) {
+test('uses custom request properties and a receivedMessage callback and the properties are set on the receivedMessage', function (t, end) {
   const dest = split(JSON.parse)
   const message = DEFAULT_REQUEST_RECEIVED_MSG
   const logger = pinoHttp({
@@ -1318,7 +1329,7 @@ test('uses custom request properties and a receivedMessage callback and the prop
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server, ERROR_URL)
   })
 
@@ -1326,42 +1337,42 @@ test('uses custom request properties and a receivedMessage callback and the prop
   dest.on('data', function (line) {
     calls++
     if (line.msg === message) {
-      t.equal(line.key1, 'value1')
-      t.equal(line.key2, 200)
-      t.equal(line.req.url, ERROR_URL)
-      t.ok(line.req, 'req is defined')
-      t.notOk(line.res, 'res is not defined yet')
+      assert.equal(line.key1, 'value1')
+      assert.equal(line.key2, 200)
+      assert.equal(line.req.url, ERROR_URL)
+      assert.ok(line.req, 'req is defined')
+      assert.equal(line.res, undefined, 'res is not defined yet')
     } else if (line.msg === DEFAULT_REQUEST_ERROR_MSG) {
-      t.equal(line.key1, 'value1')
-      t.equal(line.key2, 500)
-      t.equal(line.req.url, ERROR_URL)
-      t.ok(line.req, 'req is defined')
-      t.ok(line.res, 'res is defined')
+      assert.equal(line.key1, 'value1')
+      assert.equal(line.key2, 500)
+      assert.equal(line.req.url, ERROR_URL)
+      assert.ok(line.req, 'req is defined')
+      assert.ok(line.res, 'res is defined')
     }
     if (calls === 2) {
-      t.end()
+      end()
     }
   })
 })
 
-test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t) {
+test('uses custom request properties to log additional attributes; custom props is an object instead of callback', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customProps: { key1: 'value1' }
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.key1, 'value1')
-    t.end()
+    assert.equal(line.key1, 'value1')
+    end()
   })
 })
 
-test('uses custom request properties and once customProps', function (t) {
+test('uses custom request properties and once customProps', function (t, end) {
   const dest = split()
 
   function customPropsHandler (req, res) {
@@ -1375,67 +1386,67 @@ test('uses custom request properties and once customProps', function (t) {
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.equal(line.match(/key1/g).length, 1, 'once customProps')
-    t.end()
+    assert.equal(line.match(/key1/g).length, 1, 'once customProps')
+    end()
   })
 })
 
-test('dont pass custom request properties to log additional attributes', function (t) {
+test('dont pass custom request properties to log additional attributes', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     customProps: undefined
   }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    assert.equal(err, undefined)
     doGet(server)
   })
 
   dest.on('data', function (line) {
-    t.ok(line.hostname, 'hostname is defined')
-    t.ok(line.level, 'level is defined')
-    t.ok(line.msg, 'msg is defined')
-    t.ok(line.pid, 'pid is defined')
-    t.ok(line.req, 'req is defined')
-    t.ok(line.res, 'res is defined')
-    t.ok(line.time, 'time is defined')
-    t.end()
+    assert.ok(line.hostname, 'hostname is defined')
+    assert.ok(line.level, 'level is defined')
+    assert.ok(line.msg, 'msg is defined')
+    assert.ok(line.pid, 'pid is defined')
+    assert.ok(line.req, 'req is defined')
+    assert.ok(line.res, 'res is defined')
+    assert.ok(line.time, 'time is defined')
+    end()
   })
 })
 
-test('auto logging and next callback', function (t) {
-  t.plan(3)
+test('auto logging and next callback', async function (t) {
+  const plan = tspl(t, { plan: 3 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({ autoLogging: true }, dest)
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
       const line = dest.read()
-      t.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG)
-
-      t.end()
+      plan.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG)
     })
   }, function (req, res) {
     logger(req, res, function () {
-      t.pass('called')
+      plan.ok('called')
       res.end('hello world')
     })
   })
+
+  await plan
 })
 
-test('quiet request logging', function (t) {
-  t.plan(8)
+test('quiet request logging', async function (t) {
+  const plan = tspl(t, { plan: 8 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietReqLogger: true }, dest)
 
   function handler (req, res) {
-    t.pass('called')
+    plan.ok('called')
     req.id = 'testId'
     logger(req, res)
     req.log.info('quiet message')
@@ -1443,30 +1454,30 @@ test('quiet request logging', function (t) {
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
       const quietLine = dest.read()
-      t.equal(quietLine.msg, 'quiet message')
-      t.equal(quietLine.reqId, 'testId')
-      t.notOk(quietLine.req)
+      plan.equal(quietLine.msg, 'quiet message')
+      plan.equal(quietLine.reqId, 'testId')
+      plan.equal(quietLine.req, undefined)
 
       const responseLine = dest.read()
-      t.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
-      t.equal(responseLine.reqId, 'testId')
-      t.ok(responseLine.req)
-
-      t.end()
+      plan.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
+      plan.equal(responseLine.reqId, 'testId')
+      plan.ok(responseLine.req)
     })
   }, handler)
+
+  await plan
 })
 
-test('quiet request logging - custom request id key', function (t) {
-  t.plan(8)
+test('quiet request logging - custom request id key', async function (t) {
+  const plan = tspl(t, { plan: 8 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietReqLogger: true, customAttributeKeys: { reqId: 'customRequestId' } }, dest)
 
   function handler (req, res) {
-    t.pass('called')
+    plan.ok('called')
     req.id = 'testId'
     logger(req, res)
     req.log.info('quiet message')
@@ -1474,30 +1485,30 @@ test('quiet request logging - custom request id key', function (t) {
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
       const quietLine = dest.read()
-      t.equal(quietLine.msg, 'quiet message')
-      t.notOk(quietLine.req)
-      t.equal(quietLine.customRequestId, 'testId')
+      plan.equal(quietLine.msg, 'quiet message')
+      plan.equal(quietLine.req, undefined)
+      plan.equal(quietLine.customRequestId, 'testId')
 
       const responseLine = dest.read()
-      t.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
-      t.equal(responseLine.customRequestId, 'testId')
-      t.ok(responseLine.req)
-
-      t.end()
+      plan.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
+      plan.equal(responseLine.customRequestId, 'testId')
+      plan.ok(responseLine.req)
     })
   }, handler)
+
+  await plan
 })
 
-test('quiet response logging', function (t) {
-  t.plan(5)
+test('quiet response logging', async function (t) {
+  const plan = tspl(t, { plan: 5 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietResLogger: true }, dest)
 
   function handler (req, res) {
-    t.pass('called')
+    plan.ok('called')
     req.id = 'testId'
     logger(req, res)
     req.log.info('quiet message')
@@ -1505,27 +1516,27 @@ test('quiet response logging', function (t) {
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
       dest.read()
 
       const responseLine = dest.read()
-      t.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
-      t.notOk(responseLine.req)
-      t.ok(responseLine.res)
-
-      t.end()
+      plan.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
+      plan.equal(responseLine.req, undefined)
+      plan.ok(responseLine.res)
     })
   }, handler)
+
+  await plan
 })
 
-test('quiet request and response logging', function (t) {
-  t.plan(6)
+test('quiet request and response logging', async function (t) {
+  const plan = tspl(t, { plan: 6 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({ quietReqLogger: true, quietResLogger: true }, dest)
 
   function handler (req, res) {
-    t.pass('called')
+    plan.ok('called')
     req.id = 'testId'
     logger(req, res)
     req.log.info('quiet message')
@@ -1533,17 +1544,17 @@ test('quiet request and response logging', function (t) {
   }
 
   setup(t, logger, function (err, server) {
-    t.error(err)
+    plan.equal(err, undefined)
     doGet(server, null, function () {
       dest.read()
 
       const responseLine = dest.read()
-      t.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
-      t.equal(responseLine.reqId, 'testId')
-      t.notOk(responseLine.req)
-      t.ok(responseLine.res)
-
-      t.end()
+      plan.equal(responseLine.msg, DEFAULT_REQUEST_COMPLETED_MSG)
+      plan.equal(responseLine.reqId, 'testId')
+      plan.equal(responseLine.req, undefined)
+      plan.ok(responseLine.res)
     })
   }, handler)
+
+  await plan
 })
