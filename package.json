@@ -19,7 +19,7 @@
     "eslint": "^9.37.0",
     "http-ndjson": "^3.1.0",
     "neostandard": "^0.12.2",
-    "pino-http-print": "^3.1.0",
+    "pino-http-print": "^4.0.0",
     "pino-pretty": "^13.0.0",
     "split2": "^4.0.0",
     "ts-node": "^10.3.0",
