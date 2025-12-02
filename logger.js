@@ -96,6 +96,11 @@ function pinoLogger (opts, stream) {
     let log = logger
     const responseTime = Date.now() - res[startTime]
     const req = res[reqObject]
+
+    if (autoLoggingIgnore !== null && autoLoggingIgnore(req, res)) {
+      return
+    }
+
     const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err, req)
 
     if (level === 'silent') {
@@ -136,7 +141,7 @@ function pinoLogger (opts, stream) {
   }
 
   function loggingMiddleware (logger, req, res, next) {
-    let shouldLogSuccess = true
+    const shouldLogSuccess = true
 
     req.id = req.id || genReqId(req, res)
 
@@ -179,11 +184,6 @@ function pinoLogger (opts, stream) {
     }
 
     if (autoLogging) {
-      if (autoLoggingIgnore !== null && shouldLogSuccess === true) {
-        const isIgnored = autoLoggingIgnore(req)
-        shouldLogSuccess = !isIgnored
-      }
-
       if (shouldLogSuccess) {
         const shouldLogReceived = receivedMessage !== undefined || onRequestReceivedObject !== undefined
 
