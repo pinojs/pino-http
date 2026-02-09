@@ -98,7 +98,7 @@ $ node example.js | pino-pretty
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
 * `customLogLevel`: set to a `function (req, res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued (`silent` will prevent logging). This option is mutually exclusive with the `useLevel` option. The first two arguments are the HTTP request and response. The third argument is an error object if an error has occurred in the request.
 * `autoLogging`: set to `false`, to disable the automatic "request completed" and "request errored" logging. Defaults to `true`. If set to an object, you can provide more options.
-* `autoLogging.ignore`: set to a `function (req) => { /* returns boolean */ }`. Useful for defining logic based on req properties (such as a user-agent header) to ignore successful requests.
+* `autoLogging.ignore`: set to a `function (req, res) => { /* returns boolean */ }`. Useful for defining logic based on req and res properties (such as a user-agent header or status code) to ignore requests.
 * `stream`: same as the second parameter
 * `customReceivedMessage`: set to a `function (req, res) => { /* returns message string */ }` This function will be invoked at each request received, setting "msg" property to returned string. If not set, nothing value will be used.
 * `customReceivedObject`: set to a `function (req, res, loggableObject) => { /* returns loggable object */ }` This function will be invoked at each request received, replacing the base loggable received object. When set, it is up to the reponsibility of the caller to merge with the `loggableObject` parameter. If not set, default value will be used.

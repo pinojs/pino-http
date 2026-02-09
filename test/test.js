@@ -606,6 +606,31 @@ test('autoLogging set to true and path not ignored', (t, end) => {
   })
 })
 
+test('autoLogging.ignore receives request and response and can filter by status code', function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    autoLogging: {
+      ignore: function (req, res) {
+        return res.statusCode === 200
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+
+    doGet(server, '/', function () {
+      doGet(server, ERROR_URL)
+    })
+  })
+
+  dest.on('data', function (line) {
+    assert.equal(line.req.url, ERROR_URL, 'Url should be the error one')
+    assert.equal(line.res.statusCode, 500, 'Status code should be 500')
+    end()
+  })
+})
+
 test('no auto logging with autoLogging set to true and ignoring a specific user-agent', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
