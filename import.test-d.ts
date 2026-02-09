@@ -1,7 +1,8 @@
-import { expectType } from 'tsd';
+import { expectNotAssignable, expectType } from 'tsd';
 
+import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
-import pinoHttp, { HttpLogger } from '.';
+import pinoHttp, { GenReqId, HttpLogger } from '.';
 import { pinoHttp as pinoHttpNamed } from '.';
 import * as pinoHttpStar from '.';
 import pinoHttpCjsImport = require ('.');
@@ -23,3 +24,6 @@ expectType<HttpLogger>(pinoHttpCjsImport.default());
 expectType<HttpLogger>(pinoHttpCjsImport.pinoHttp());
 expectType<any>(pinoHttpCjs());
 expectType<any>(pinoHttpCjsNamed());
+
+expectNotAssignable<GenReqId>((_req: IncomingMessage, _res: ServerResponse) => Buffer.allocUnsafe(16));
+expectNotAssignable<GenReqId>((_req: IncomingMessage, _res: ServerResponse) => ({ id: 'nope' }));
