@@ -27,8 +27,8 @@ pinoHttp<CustomRequest, CustomResponse>({ logger });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => req.statusCode || 200 });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => res.statusCode || 200 });
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => 'foo' });
-pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => Buffer.allocUnsafe(16) });
-pinoHttp<CustomRequest, CustomResponse>({ genReqId: (req: CustomRequest, res: CustomResponse) => Buffer.allocUnsafe(16) });
+pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => `${res.statusCode || 200}` });
+pinoHttp<CustomRequest, CustomResponse>({ genReqId: (req: CustomRequest, res: CustomResponse) => `${req.context}-${res.context}` });
 
 // #useLevel
 pinoHttp({ useLevel: 'error' });
@@ -110,10 +110,8 @@ const rtnLevel = () => {
 
 const genReqId: GenReqId = () => {
   let rtn: ReqId = 123;
-  if (rand()){
+  if (rand()) {
     rtn = 'str';
-  } else {
-    rtn = ({} as object);
   }
   return rtn;
 }
