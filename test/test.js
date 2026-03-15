@@ -821,7 +821,7 @@ test('err.raw is available to custom serializers', async function (t) {
 })
 
 test('req.raw is available to custom serializers', async function (t) {
-  const plan = tspl(t, { plan: 2 })
+  const plan = tspl(t, { plan: 4 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
@@ -904,7 +904,7 @@ test('res.raw is not enumerable', async function (t) {
 })
 
 test('err.raw, req.raw and res.raw are passed into custom serializers directly, when opts.wrapSerializers is false', async (t) => {
-  const plan = tspl(t, { plan: 6 })
+  const plan = tspl(t, { plan: 8 })
   const error = new Error('foo')
   const dest = split(JSON.parse)
 
@@ -945,7 +945,7 @@ test('err.raw, req.raw and res.raw are passed into custom serializers directly, 
 })
 
 test('req.id has a non-function value', async function (t) {
-  const plan = tspl(t, { plan: 1 })
+  const plan = tspl(t, { plan: 2 })
   const dest = split(JSON.parse)
   const logger = pinoHttp({
     logger: pino(dest),
@@ -1582,4 +1582,33 @@ test('quiet request and response logging', async function (t) {
   }, handler)
 
   await plan
+})
+
+test('nestedKey groups req, res and responseTime consistently', async function (t) {
+  const plan = tspl(t, { plan: 5 })
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    logger: pino({ nestedKey: 'logPayload' }, dest)
+  })
+
+  const server = http.createServer(handler)
+  server.unref()
+  server.listen(0, () => {
+    http.get(server.address(), () => { server.close() })
+  })
+
+  await plan
+
+  function handler (req, res) {
+    logger(req, res)
+    res.end()
+
+    dest.on('data', function (line) {
+      plan.ok(line.logPayload, 'logPayload key should exist')
+      plan.ok(line.logPayload.req, 'req should be under logPayload')
+      plan.ok(line.logPayload.res, 'res should be under logPayload')
+      plan.ok(line.logPayload.responseTime !== undefined, 'responseTime should be under logPayload')
+      plan.equal(line.req, undefined, 'req should not be at the top level')
+    })
+  }
 })

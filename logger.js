@@ -119,23 +119,35 @@ function pinoLogger (opts, stream) {
     if (err || res.err || res.statusCode >= 500) {
       const error = err || res.err || new Error('failed with status code ' + res.statusCode)
 
+      const errorObject = {
+        [resKey]: res,
+        [errKey]: error,
+        [responseTimeKey]: responseTime
+      }
+
+      if (!quietResLogger) {
+        errorObject[reqKey] = req
+      }
+
       log[level](
-        onRequestErrorObject(req, res, error, {
-          [resKey]: res,
-          [errKey]: error,
-          [responseTimeKey]: responseTime
-        }),
+        onRequestErrorObject(req, res, error, errorObject),
         errorMessage(req, res, error, responseTime)
       )
 
       return
     }
 
+    const successObject = {
+      [resKey]: res,
+      [responseTimeKey]: responseTime
+    }
+
+    if (!quietResLogger) {
+      successObject[reqKey] = req
+    }
+
     log[level](
-      onRequestSuccessObject(req, res, {
-        [resKey]: res,
-        [responseTimeKey]: responseTime
-      }),
+      onRequestSuccessObject(req, res, successObject),
       successMessage(req, res, responseTime)
     )
   }
@@ -180,7 +192,7 @@ function pinoLogger (opts, stream) {
       res.removeListener('close', onResponseComplete)
       res.removeListener('finish', onResponseComplete)
       res.removeListener('error', onResponseComplete)
-      return onResFinished(res, responseLogger, err)
+      return onResFinished(res, log, err)
     }
 
     if (autoLogging) {
