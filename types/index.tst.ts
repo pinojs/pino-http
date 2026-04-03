@@ -6,7 +6,7 @@ import { Socket } from 'net';
 import pino from 'pino';
 import { Writable } from 'stream';
 import { err, req, res } from 'pino-std-serializers';
-import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers, StdSerializedResults } from '.';
+import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers, StdSerializedResults } from '..';
 
 interface CustomRequest extends IncomingMessage {
   context: number;
@@ -121,14 +121,13 @@ const genReqId: GenReqId = () => {
 const autoLoggingOptions = (() => {
   let rtn: AutoLoggingOptions | boolean = true;
   if (rand()) {
-    rtn = {
-      ignore: canBeUndefined(() => true),
-    };
+    rtn = rand() ? { ignore: () => true } : {};
   } else if (rand()) {
     rtn = false;
   }
   return rtn;
 })();
+
 
 const customAttributeKeys: CustomAttributeKeys = {
   req: canBeUndefined('req'),
@@ -198,12 +197,12 @@ const stdSerializedResults: StdSerializedResults = {
 const httpServerListener: RequestListener = (request, response) => {
   // req.log and req.id should be available
   request.log.info(`Request received with request ID ${request.id}`);
-  request.allLogs[0].info("Request Received");
+  request.allLogs[0]!.info("Request Received");
   // res[startTime] should be available
   response[startTime] = Date.now();
   // res.log and res.allLogs should be available
   response.log.info("Logging works on response");
-  request.allLogs[0].info("allLogs available on response");
+  request.allLogs[0]!.info("allLogs available on response");
   response.end("Hello world");
 };
 
