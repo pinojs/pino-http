@@ -94,7 +94,7 @@ $ node example.js | pino-pretty
 `opts`: it has all the options as [pino](http://npm.im/pino) and
 
 * `logger`: parent pino instance for a child logger instance, which will be used by `pino-http`. To refer to this child instance, use [pinoHttp.logger](#pinohttplogger-plogger)
-* `genReqId`: you can pass a function which gets used to generate a request id. The first argument is the request itself. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
+* `genReqId`: you can pass a function which gets used to generate a request id. The arguments are `(req, res)` and the function should return a `string` or `number`. As fallback `pino-http` is just using an integer. This default might not be the desired behavior if you're running multiple instances of the app
 * `useLevel`: the logger level `pino-http` is using to log out the response. default: `info`
 * `customLogLevel`: set to a `function (req, res, err) => { /* returns level name string */ }`. This function will be invoked to determine the level at which the log should be issued (`silent` will prevent logging). This option is mutually exclusive with the `useLevel` option. The first two arguments are the HTTP request and response. The third argument is an error object if an error has occurred in the request.
 * `autoLogging`: set to `false`, to disable the automatic "request completed" and "request errored" logging. Defaults to `true`. If set to an object, you can provide more options.
