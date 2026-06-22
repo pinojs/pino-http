@@ -20,7 +20,7 @@ export interface HttpLogger<IM = IncomingMessage, SR = ServerResponse, CustomLev
     (req: IM, res: SR, next?: () => void): void;
     logger: pino.Logger<CustomLevels>;
 }
-export type ReqId = number | string | object;
+export type ReqId = number | string;
 
 export interface Options<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never> extends pino.LoggerOptions {
     logger?: pino.Logger<CustomLevels> | undefined;

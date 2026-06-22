@@ -1,10 +1,10 @@
 import { expect } from 'tstyche';
-
+import { IncomingMessage, ServerResponse } from 'http';
 import pino from 'pino';
-import pinoHttp, { HttpLogger } from '..';
-import { pinoHttp as pinoHttpNamed } from '..';
-import * as pinoHttpStar from '..';
-import pinoHttpCjsImport = require('..');
+import pinoHttp, { GenReqId, HttpLogger } from '.';
+import { pinoHttp as pinoHttpNamed } from '.';
+import * as pinoHttpStar from '.';
+import pinoHttpCjsImport = require('.');
 const pinoHttpCjs = require('.');
 const { pinoHttp: pinoHttpCjsNamed } = require('.');
 
@@ -25,3 +25,10 @@ expect(pinoHttpCjsImport.default()).type.toBe<HttpLogger>();
 expect(pinoHttpCjsImport.pinoHttp()).type.toBe<HttpLogger>();
 expect(pinoHttpCjs()).type.toBe<any>();
 expect(pinoHttpCjsNamed()).type.toBe<any>();
+
+expect<GenReqId>().type.not.toBeAssignableTo<
+  (_req: IncomingMessage, _res: ServerResponse) => Buffer
+>();
+expect<GenReqId>().type.not.toBeAssignableTo<
+  (_req: IncomingMessage, _res: ServerResponse) => { id: string }
+>();
