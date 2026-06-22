@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@matteo.collina/tspl": "^0.2.0",
-    "@types/node": "^25.0.2",
+    "@types/node": "^26.0.0",
     "autocannon": "^8.0.0",
     "c8": "^11.0.0",
     "coveralls": "^3.0.0",
