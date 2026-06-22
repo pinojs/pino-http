@@ -101,7 +101,7 @@ test('add transport.caller information when missing', function () {
 
   const logger = pinoHttp(options)
   logger.logger.info('hello world')
-  assert.equal(options.transport.caller, join(__dirname, '../logger.js'), 'caller is set')
+  assert.equal(options.transport.caller, join(__dirname, '../index.js'), 'caller is set')
 })
 
 test('exposes the internal pino', function (t, end) {

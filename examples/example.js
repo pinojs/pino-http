@@ -3,7 +3,7 @@
 const http = require('http')
 const server = http.createServer(handle)
 
-const logger = require('./')()
+const logger = require('../types')()
 
 function handle (req, res) {
   logger(req, res)

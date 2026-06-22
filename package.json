@@ -2,7 +2,7 @@
   "name": "pino-http",
   "version": "11.0.0",
   "description": "High-speed HTTP logger for Node.js",
-  "main": "logger.js",
+  "main": "index.js",
   "types": "types/index.d.ts",
   "dependencies": {
     "get-caller-file": "^2.0.5",

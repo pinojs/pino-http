@@ -9,7 +9,7 @@ const tspl = require('@matteo.collina/tspl')
 test('custom format transport', async function (t) {
   const plan = tspl(t, { plan: 2 })
 
-  const ls = spawn('node', [join(__dirname, '../example-custom-format.js')], {
+  const ls = spawn('node', [join(__dirname, '../examples/example-custom-format.js')], {
     cwd: process.cwd()
   })
   ls.stdout.setEncoding('utf8')
