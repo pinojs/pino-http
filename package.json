@@ -28,8 +28,9 @@
   },
   "scripts": {
     "benchmark": "bash ./scripts/benchmark-all",
-    "test": "eslint && c8 node --test && npm run test-types",
-    "fix": "eslint --fix",
+    "test": "npm run lint && c8 node --test && npm run test-types",
+    "lint": "eslint .",
+    "lint:fix": "eslint --fix",
     "test-types": "tstyche"
   },
   "author": "David Mark Clements",
