@@ -15,7 +15,6 @@
     "@types/node": "^25.0.2",
     "autocannon": "^8.0.0",
     "c8": "^11.0.0",
-    "coveralls": "^3.0.0",
     "eslint": "^9.37.0",
     "http-ndjson": "^3.1.0",
     "neostandard": "^0.13.0",
