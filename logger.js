@@ -92,12 +92,16 @@ function pinoLogger (opts, stream) {
   result.logger = logger
   return result
 
+  function isAutoLoggingIgnored (req, res) {
+    return autoLoggingIgnore !== null && !!autoLoggingIgnore(req, res)
+  }
+
   function onResFinished (res, logger, err) {
     let log = logger
     const responseTime = Date.now() - res[startTime]
     const req = res[reqObject]
 
-    if (autoLoggingIgnore !== null && autoLoggingIgnore(req, res)) {
+    if (isAutoLoggingIgnored(req, res)) {
       return
     }
 
@@ -185,7 +189,8 @@ function pinoLogger (opts, stream) {
 
     if (autoLogging) {
       if (shouldLogSuccess) {
-        const shouldLogReceived = receivedMessage !== undefined || onRequestReceivedObject !== undefined
+        const shouldLogReceived = (receivedMessage !== undefined || onRequestReceivedObject !== undefined) &&
+          !isAutoLoggingIgnored(req, res)
 
         if (shouldLogReceived) {
           const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, undefined, req)

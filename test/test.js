@@ -659,6 +659,86 @@ test('no auto logging with autoLogging set to true and ignoring a specific user-
   })
 })
 
+test('autoLogging.ignore also skips the request received log', function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customReceivedMessage: function (_req, _res) {
+      return DEFAULT_REQUEST_RECEIVED_MSG
+    },
+    autoLogging: {
+      ignore: function (req) {
+        return req.url === '/ignorethis'
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+
+    doGet(server, '/ignorethis', function () {
+      const line = dest.read()
+      assert.equal(line, null)
+      end()
+    })
+  })
+})
+
+test('autoLogging.ignore also skips the request received object', function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customReceivedObject: function (req, _res) {
+      return { label: req.method + ' customReceivedObject' }
+    },
+    autoLogging: {
+      ignore: function (req) {
+        return req.url === '/ignorethis'
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+
+    doGet(server, '/ignorethis', function () {
+      const line = dest.read()
+      assert.equal(line, null)
+      end()
+    })
+  })
+})
+
+test('autoLogging.ignore does not skip the request received log of a request it does not ignore', async function (t) {
+  const plan = tspl(t, { plan: 3 })
+
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({
+    customReceivedMessage: function (_req, _res) {
+      return DEFAULT_REQUEST_RECEIVED_MSG
+    },
+    autoLogging: {
+      ignore: function (req) {
+        return req.url === '/ignorethis'
+      }
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    plan.equal(err, undefined)
+    doGet(server, '/shouldlogthis')
+  })
+
+  const messages = []
+  dest.on('data', function (line) {
+    messages.push(line.msg)
+    if (messages.length === 2) {
+      plan.equal(messages[0], DEFAULT_REQUEST_RECEIVED_MSG)
+      plan.equal(messages[1], DEFAULT_REQUEST_COMPLETED_MSG)
+    }
+  })
+
+  await plan
+})
+
 test('support a custom instance', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
