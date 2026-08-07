@@ -31,7 +31,7 @@ export interface Options<IM = IncomingMessage, SR = ServerResponse, CustomLevels
     customLogLevel?: ((req: IM, res: SR, error?: Error) => pino.LevelWithSilent | CustomLevels) | undefined;
     customReceivedMessage?: ((req: IM, res: SR) => string) | undefined;
     customSuccessMessage?: ((req: IM, res: SR, responseTime: number) => string) | undefined;
-    customErrorMessage?: ((req: IM, res: SR, error: Error) => string) | undefined;
+    customErrorMessage?: ((req: IM, res: SR, error: Error, responseTime: number) => string) | undefined;
     customReceivedObject?: ((req: IM, res: SR, val?: any) => any) | undefined;
     customSuccessObject?: ((req: IM, res: SR, val: any) => any) | undefined;
     customErrorObject?: ((req: IM, res: SR, error: Error, val: any) => any) | undefined;

@@ -47,6 +47,7 @@ pinoHttp<CustomRequest, CustomResponse>({ customSuccessMessage: (req: CustomRequ
 
 // #customErrorMessage
 pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error) => `Error - ${error}` });
+pinoHttp({ customErrorMessage: (req: IncomingMessage, res: ServerResponse, error: Error, responseTime: number) => `Error - ${error} (${responseTime}ms)` });
 pinoHttp<CustomRequest, CustomResponse>({ customErrorMessage: (req: CustomRequest, res: CustomResponse, error: Error) => `Error - ${error}` });
 
 // #customAttributeKeys
@@ -147,7 +148,7 @@ const options: Options = {
     return `Received HTTP ${req.httpVersion} ${req.method}`;
   }),
   customSuccessMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse) => 'successMessage'),
-  customErrorMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error) => 'errorMessage'),
+  customErrorMessage: canBeUndefined((req: IncomingMessage, res: ServerResponse, error: Error, responseTime: number) => 'errorMessage'),
   customAttributeKeys: canBeUndefined(customAttributeKeys),
   wrapSerializers: canBeUndefined(rtnBool()),
   customProps: canBeUndefined((req: IncomingMessage, res: ServerResponse) => ({} as object)),
