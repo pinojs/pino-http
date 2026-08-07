@@ -1,6 +1,6 @@
 'use strict'
 
-const { pino, symbols: { stringifySym, chindingsSym } } = require('pino')
+const { pino } = require('pino')
 const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const startTime = Symbol('startTime')
@@ -107,13 +107,17 @@ function pinoLogger (opts, stream) {
       return
     }
 
+    // `logger` here is the request-scoped logger *without* customProps applied
+    // (see loggingMiddleware below) so it's safe to bind customProps exactly
+    // once, using the freshest req/res state available at response-finish
+    // time. Binding on top of an already-customProps-bound logger (as this
+    // used to do) could produce duplicate keys in the output whenever
+    // customProps() legitimately returns different values between the
+    // request-start and response-finish calls (e.g. properties that depend
+    // on data only available once the request has been routed/handled).
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
-      const customPropBindingStr = logger[stringifySym](customPropBindings).replace(/[{}]/g, '')
-      const customPropBindingsStr = logger[chindingsSym]
-      if (!customPropBindingsStr.includes(customPropBindingStr)) {
-        log = logger.child(customPropBindings)
-      }
+      log = logger.child(customPropBindings)
     }
 
     if (err || res.err || res.statusCode >= 500) {
@@ -147,7 +151,8 @@ function pinoLogger (opts, stream) {
 
     const log = quietReqLogger ? logger.child({ [requestIdKey]: req.id }) : logger
 
-    let fullReqLogger = log.child({ [reqKey]: req })
+    const baseReqLogger = log.child({ [reqKey]: req })
+    let fullReqLogger = baseReqLogger
     const customPropBindings = (typeof customProps === 'function') ? customProps(req, res) : customProps
     if (customPropBindings) {
       fullReqLogger = fullReqLogger.child(customPropBindings)
@@ -155,6 +160,12 @@ function pinoLogger (opts, stream) {
 
     const responseLogger = quietResLogger ? log : fullReqLogger
     const requestLogger = quietReqLogger ? log : fullReqLogger
+    // Logger passed to onResFinished for the completion/error log line. It
+    // intentionally does *not* have customProps applied yet (unlike
+    // responseLogger above, which is used for logging during the request) so
+    // that onResFinished can apply customProps exactly once, using the
+    // freshest req/res state, without duplicating keys already bound above.
+    const finishLogger = quietResLogger ? log : baseReqLogger
 
     if (!res.log) {
       res.log = responseLogger
@@ -180,7 +191,7 @@ function pinoLogger (opts, stream) {
       res.removeListener('close', onResponseComplete)
       res.removeListener('finish', onResponseComplete)
       res.removeListener('error', onResponseComplete)
-      return onResFinished(res, responseLogger, err)
+      return onResFinished(res, finishLogger, err)
     }
 
     if (autoLogging) {
