@@ -90,6 +90,10 @@ function pinoLogger (opts, stream) {
     return loggingMiddleware(logger, req, res, next)
   }
   result.logger = logger
+  result.express = (err, req, res, next) => {
+    res.err = err
+    return next(err)
+  }
   return result
 
   function onResFinished (res, logger, err) {

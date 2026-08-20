@@ -22,6 +22,8 @@ pinoHttp();
 pinoHttp({ logger });
 pinoHttp({ logger }).logger = logger;
 pinoHttp<CustomRequest, CustomResponse>({ logger });
+pinoHttp().express(new Error('boom'), {} as IncomingMessage, {} as ServerResponse, (err: Error) => {});
+pinoHttp<CustomRequest, CustomResponse>().express(new Error('boom'), {} as CustomRequest, {} as CustomResponse, (err: Error) => {});
 
 // #genReqId
 pinoHttp({ genReqId: (req: IncomingMessage, res: ServerResponse) => req.statusCode || 200 });

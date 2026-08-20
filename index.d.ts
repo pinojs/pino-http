@@ -19,6 +19,7 @@ declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse>(stream?: pi
 export interface HttpLogger<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never> {
     (req: IM, res: SR, next?: () => void): void;
     logger: pino.Logger<CustomLevels>;
+    express: (err: Error, req: IM, res: SR, next: (err: Error) => void) => void;
 }
 export type ReqId = number | string;
 
