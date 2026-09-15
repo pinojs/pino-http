@@ -116,6 +116,31 @@ test('exposes the internal pino', function (t, end) {
   logger.logger.info('hello world')
 })
 
+test('express error middleware preserves the original error', function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp(dest)
+  const error = new Error('not happy')
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server)
+  }, function (req, res) {
+    logger(req, res)
+    logger.express(error, req, res, function (nextError) {
+      assert.equal(nextError, error)
+      assert.equal(res.err, error)
+      res.statusCode = 500
+      res.end('error')
+    })
+  })
+
+  dest.on('data', function (line) {
+    assert.equal(line.err.message, error.message)
+    assert.equal(line.err.stack, error.stack)
+    end()
+  })
+})
+
 test('internal pino logger not shared between multiple middleware', function (t) {
   const dest = split(JSON.parse)
   const middleware1 = pinoHttp(dest)

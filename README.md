@@ -133,6 +133,29 @@ function handle (req, res) {
 app.listen(3000)
 ```
 
+To preserve the original Express error in automatic completion logs, mount the
+same logger instance's `express` error middleware after the routes and before
+the application's error handler:
+
+```js
+const express = require('express')
+const httpLogger = require('pino-http')()
+
+const app = express()
+
+app.use(httpLogger)
+
+app.get('/', function (req, res) {
+  throw new Error('not happy')
+})
+
+app.use(httpLogger.express)
+
+app.use(function (err, req, res, next) {
+  res.status(500).send(err.message)
+})
+```
+
 ##### Logger options
 
 ```js
