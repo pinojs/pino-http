@@ -1421,6 +1421,41 @@ test('uses custom request properties and once customProps', function (t, end) {
   })
 })
 
+test('customProps returning different values between request start and response finish does not duplicate keys', function (t, end) {
+  const dest = split()
+
+  // Simulates a common real-world pattern (e.g. NestJS/Express apps): a
+  // property that is only known once request-handling middleware further
+  // down the chain has run, so customProps() legitimately returns a
+  // different value when called again at response-finish time.
+  function customPropsHandler (req, res) {
+    return {
+      route: req.matchedRoute || 'unknown'
+    }
+  }
+
+  const logger = pinoHttp({
+    customProps: customPropsHandler
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server)
+  }, function (req, res) {
+    logger(req, res, noop)
+    req.matchedRoute = '/api/widgets/:id'
+    res.end('hello world')
+  })
+
+  dest.on('data', function (line) {
+    const parsed = JSON.parse(line)
+    if (parsed.msg !== DEFAULT_REQUEST_COMPLETED_MSG) return
+    assert.equal(line.match(/"route"/g).length, 1, 'route key appears exactly once')
+    assert.equal(parsed.route, '/api/widgets/:id', 'uses the freshest value, not the stale early one')
+    end()
+  })
+})
+
 test('dont pass custom request properties to log additional attributes', function (t, end) {
   const dest = split(JSON.parse)
   const logger = pinoHttp({
