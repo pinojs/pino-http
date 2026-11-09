@@ -339,6 +339,32 @@ test('uses the custom invalid log level passed in as an option', function (t, en
   })
 })
 
+test('customLogLevel receives the error set on res.err', function (t, end) {
+  const dest = split(JSON.parse)
+  const error = new Error('boom')
+  const logger = pinoHttp({
+    customLogLevel: function (_req, _res, err) {
+      return err ? 'error' : 'info'
+    }
+  }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server)
+  }, function (req, res) {
+    logger(req, res)
+    res.err = error
+    res.end()
+  })
+
+  dest.on('data', function (line) {
+    assert.equal(line.msg, DEFAULT_REQUEST_ERROR_MSG)
+    assert.equal(line.err.message, 'boom')
+    assert.equal(line.level, 50, 'level')
+    end()
+  })
+})
+
 test('throw error if custom log level and log level passed in together', function (t) {
   const dest = split(JSON.parse)
   const throwFunction = function () {

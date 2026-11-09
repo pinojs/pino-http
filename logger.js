@@ -101,7 +101,7 @@ function pinoLogger (opts, stream) {
       return
     }
 
-    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err, req)
+    const level = getLogLevelFromCustomLogLevel(customLogLevel, useLevel, res, err || res.err, req)
 
     if (level === 'silent') {
       return
