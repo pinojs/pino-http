@@ -1,6 +1,6 @@
 'use strict'
 
-const { pino, symbols: { stringifySym, chindingsSym } } = require('pino')
+const { pino, symbols: { stringifySym, chindingsSym, nestedKeySym } } = require('pino')
 const serializers = require('pino-std-serializers')
 const getCallerFile = require('get-caller-file')
 const startTime = Symbol('startTime')
@@ -81,6 +81,10 @@ function pinoLogger (opts, stream) {
 
   const logger = wrapChild(opts, theStream)
 
+  // pino applies nestedKey to the object passed to a log call, not to child
+  // bindings, so with nestedKey the completion line carries req in its object
+  const reqInCompletionObject = !quietResLogger && !!logger[nestedKeySym]
+
   const validLogLevels = Object.keys(logger.levels.values).concat('silent')
   const useLevel = getValidLogLevel(opts.useLevel)
   delete opts.useLevel
@@ -96,6 +100,7 @@ function pinoLogger (opts, stream) {
     let log = logger
     const responseTime = Date.now() - res[startTime]
     const req = res[reqObject]
+    const reqProps = reqInCompletionObject ? { [reqKey]: req } : {}
 
     if (autoLoggingIgnore !== null && autoLoggingIgnore(req, res)) {
       return
@@ -121,6 +126,7 @@ function pinoLogger (opts, stream) {
 
       log[level](
         onRequestErrorObject(req, res, error, {
+          ...reqProps,
           [resKey]: res,
           [errKey]: error,
           [responseTimeKey]: responseTime
@@ -133,6 +139,7 @@ function pinoLogger (opts, stream) {
 
     log[level](
       onRequestSuccessObject(req, res, {
+        ...reqProps,
         [resKey]: res,
         [responseTimeKey]: responseTime
       }),
@@ -180,7 +187,7 @@ function pinoLogger (opts, stream) {
       res.removeListener('close', onResponseComplete)
       res.removeListener('finish', onResponseComplete)
       res.removeListener('error', onResponseComplete)
-      return onResFinished(res, responseLogger, err)
+      return onResFinished(res, reqInCompletionObject ? log : responseLogger, err)
     }
 
     if (autoLogging) {

@@ -1583,3 +1583,101 @@ test('quiet request and response logging', async function (t) {
 
   await plan
 })
+
+test('nestedKey puts req under the nested key on the completion line', { timeout: 5000 }, function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ nestedKey: 'payload' }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server)
+  })
+
+  dest.on('data', function (line) {
+    try {
+      assert.equal(line.msg, DEFAULT_REQUEST_COMPLETED_MSG)
+      assert.equal(line.req, undefined)
+      assert.equal(line.res, undefined)
+      assert.equal(line.payload.req.method, 'GET')
+      assert.equal(line.payload.res.statusCode, 200)
+      assert.equal(typeof line.payload.responseTime, 'number')
+      end()
+    } catch (err) {
+      end(err)
+    }
+  })
+})
+
+test('nestedKey puts req under the nested key on the error line', { timeout: 5000 }, function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ nestedKey: 'payload' }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server, ERROR_URL)
+  })
+
+  dest.on('data', function (line) {
+    try {
+      assert.equal(line.msg, DEFAULT_REQUEST_ERROR_MSG)
+      assert.equal(line.req, undefined)
+      assert.equal(line.payload.req.method, 'GET')
+      assert.equal(line.payload.res.statusCode, 500)
+      assert.ok(line.payload.err)
+      end()
+    } catch (err) {
+      end(err)
+    }
+  })
+})
+
+test('nestedKey keeps req bound on req.log and customProps on the completion line', { timeout: 5000 }, function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ nestedKey: 'payload', customProps: { key1: 'value1' } }, dest)
+
+  function handler (req, res) {
+    logger(req, res)
+    req.log.info('hello')
+    res.end('hello world')
+  }
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server, null, function () {
+      try {
+        const helloLine = dest.read()
+        assert.equal(helloLine.req.method, 'GET')
+        assert.equal(helloLine.key1, 'value1')
+
+        const responseLine = dest.read()
+        assert.equal(responseLine.req, undefined)
+        assert.equal(responseLine.payload.req.method, 'GET')
+        assert.equal(responseLine.key1, 'value1')
+        assert.equal(responseLine.payload.key1, undefined)
+        end()
+      } catch (err) {
+        end(err)
+      }
+    })
+  }, handler)
+})
+
+test('nestedKey with quietResLogger leaves req off the completion line', { timeout: 5000 }, function (t, end) {
+  const dest = split(JSON.parse)
+  const logger = pinoHttp({ nestedKey: 'payload', quietResLogger: true }, dest)
+
+  setup(t, logger, function (err, server) {
+    assert.equal(err, undefined)
+    doGet(server, null, function () {
+      try {
+        const responseLine = dest.read()
+        assert.equal(responseLine.req, undefined)
+        assert.equal(responseLine.payload.req, undefined)
+        assert.ok(responseLine.payload.res)
+        end()
+      } catch (err) {
+        end(err)
+      }
+    })
+  })
+})
