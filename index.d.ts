@@ -14,6 +14,13 @@ import { err, req, res, SerializedError, SerializedRequest, SerializedResponse }
 
 declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never>(opts?: Options<IM, SR, CustomLevels>, stream?: pino.DestinationStream): HttpLogger<IM, SR, CustomLevels>;
 
+/**
+ * Custom logger levels available on the request and response loggers.
+ * Applications can add their custom levels through module augmentation.
+ */
+export interface PinoHttpCustomLevels extends Record<never, never> {}
+type PinoHttpCustomLevelNames = keyof PinoHttpCustomLevels & string;
+
 declare function PinoHttp<IM = IncomingMessage, SR = ServerResponse>(stream?: pino.DestinationStream): HttpLogger<IM, SR>;
 
 export interface HttpLogger<IM = IncomingMessage, SR = ServerResponse, CustomLevels extends string = never> {
@@ -80,8 +87,8 @@ export const stdSerializers: StdSerializers;
 declare module "http" {
     interface IncomingMessage {
       id: ReqId;
-      log: pino.Logger;
-      allLogs: pino.Logger[];
+      log: pino.Logger<PinoHttpCustomLevelNames>;
+      allLogs: pino.Logger<PinoHttpCustomLevelNames>[];
     }
 
     interface ServerResponse {
@@ -90,7 +97,7 @@ declare module "http" {
 
     interface OutgoingMessage {
       [startTime]: number;
-      log: pino.Logger;
-      allLogs: pino.Logger[];
+      log: pino.Logger<PinoHttpCustomLevelNames>;
+      allLogs: pino.Logger<PinoHttpCustomLevelNames>[];
     }
   }
