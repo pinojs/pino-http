@@ -8,6 +8,12 @@ import { Writable } from 'stream';
 import { err, req, res } from 'pino-std-serializers';
 import pinoHttp, { AutoLoggingOptions, CustomAttributeKeys, GenReqId, HttpLogger, Options, ReqId, startTime, StdSerializers, StdSerializedResults } from '.';
 
+declare module './index' {
+  interface PinoHttpCustomLevels {
+    bark: number;
+  }
+}
+
 interface CustomRequest extends IncomingMessage {
   context: number;
 }
@@ -232,3 +238,17 @@ pinoHttp({
   logger: customLogger,
   customLogLevel: () => 'bark'
 })
+
+
+// Custom levels declared through module augmentation should be available
+// on request/response loggers and on the allLogs collections.
+const requestWithCustomLevels = new IncomingMessage(new Socket());
+requestWithCustomLevels.log.bark('request bark');
+requestWithCustomLevels.allLogs[0].bark('request bark');
+
+const responseWithCustomLevels = new ServerResponse(new IncomingMessage(new Socket()));
+responseWithCustomLevels.log.bark('response bark');
+responseWithCustomLevels.allLogs[0].bark('response bark');
+
+// @ts-expect-error levels not declared by the application must remain unavailable
+requestWithCustomLevels.log.unknownLevel('unknown');
